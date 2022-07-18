@@ -1,0 +1,46 @@
+---
+ppc64le: false
+uefi: false
+disk: sda                                  #disk where you are installing RHCOS on the masters/workers
+helper:
+  name: "bastion"                          #hostname for your helper node
+  ipaddr: "$HELPER_ID"                #current IP address of the helper
+  networkifacename: "$NETWORK_INTERFACE"                 #interface of the helper node,ACTUAL name of the interface, NOT the NetworkManager name
+dns:
+  domain: "$BASE_DOMAIN_NAME"                    #DNS server domain. Should match  baseDomain inside the install-config.yaml file.
+  clusterid: "ocp4"                        #needs to match what you will for metadata.name inside the install-config.yaml file
+  forwarder1: "8.8.8.8"                    #DNS forwarder
+  forwarder2: "1.1.1.1"                    #second DNS forwarder
+  lb_ipaddr: "{{ helper.ipaddr }}"         #Load balancer IP, it is optional, the default value is helper.ipaddr
+dhcp:
+  router: "$GATEWAY"                  #default gateway of the network assigned to the masters/workers
+  bcast: "$BROADCAST"                 #broadcast address for your network
+  netmask: "$NETMASK"                 #netmask that gets assigned to your masters/workers
+  poolstart: "192.168.100.10"              #First address in your dhcp address pool
+  poolend: "192.168.100.50"                #Last address in your dhcp address pool
+  ipid: "$NET_ID"                    #ip network id for the range
+  netmaskid: "$NETMASK"               #networkmask id for the range.
+  ntp: "time.google.com"                   #ntp server address
+  dns: "$DNS_1"                                  #domain name server, it is optional, the default value is set to helper.ipaddr
+bootstrap:
+  name: "bootstrap"                        #hostname (WITHOUT the fqdn) of the bootstrap node 
+  ipaddr: "$BOOTSTRAP_IP"                 #IP address that you want set for bootstrap node
+  macaddr: "$BOOTSTRAP_MAC_ADDRESS"             #The mac address for dhcp reservation
+masters:
+  - name: "master01"                       #hostname (WITHOUT the fqdn) of the master node (x of 3)
+    ipaddr: "$MASTER_01_IP"               #The IP address (x of 3) that you want set
+    macaddr: "$MASTER_01_MAC_ADDRESS"           #The mac address for dhcp reservation
+  - name: "master02"
+    ipaddr: "$MASTER_02_IP"
+    macaddr: "$MASTER_02_MAC_ADDRESS"
+  - name: "master03"
+    ipaddr: "$MASTER_03_IP"
+    macaddr: "$MASTER_03_MAC_ADDRESS"
+workers:
+  - name: "worker01"                       #hostname (WITHOUT the fqdn) of the worker node you want to set
+    ipaddr: "$WORKER_01_IP"               #The IP address that you want set (1st node)
+    macaddr: "$WORKER_01_MAC_ADDRESS"           #The mac address for dhcp reservation (1st node)
+  - name: "worker02"
+    ipaddr: "$WORKER_02_IP"
+    macaddr: "$WORKER_02_MAC_ADDRESS"
+#end
