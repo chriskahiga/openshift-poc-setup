@@ -112,8 +112,8 @@ EOF
     ls /var/lib/tftpboot/rhcos
     echo -e "OK" >>$LOGFILE
 
-    echo -e "Installing Apache ..\n"
-    echo -e "Installing Apache ..\n" >>$LOGFILE
+    echo -e "\nInstalling Apache ..\n"
+    echo -e "\nInstalling Apache ..\n" >>$LOGFILE
     sudo yum -y remove httpd >>$LOGFILE
     sudo yum -y install httpd >>$LOGFILE
     on_error $? "Could not install Apache. Check logs at $LOGFILE"
@@ -122,7 +122,8 @@ EOF
     sudo firewall-cmd --add-port=8080/tcp --permanent
     sudo firewall-cmd --reload
     sudo mkdir -p /var/www/html/rhcos
-    wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-live-rootfs.x86_64.img >> $LOGFILE
+    echo "\nDownloading Red HatCoreOSroofs image. This might take some time ..\n"
+    wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-live-rootfs.x86_64.img >>$LOGFILE
     on_error $? "Could not download Red Hat CoreOSrootfs image. Check logs at $LOGFILE"
     sudo mv rhcos-live-rootfs.x86_64.img /var/www/html/rhcos/rootfs.img
     sudo restorecon -RFv /var/www/html/rhcos
@@ -156,10 +157,11 @@ EOF
     sudo firewall-cmd --reload
     echo -e "\nHAProxy Setup Complete\n"
     echo -e "OK" >>$LOGFILE
+    echo -e "\nEnvironment Setup Complete\n"
 
-    systemctl status dhcpd
-    systemctl status haproxy
-    systemctl status tftp
+    echo -e "\nNext Confirm Forward and Reverse DNS Resolution"
+    echo -e "Then Downloading openshift-install, client binaries and generating SSH Keys,"
+    echo -e "And finally Generating Ignition Files"
 else
     echo "Cannot find config file. QUITING"
 fi
