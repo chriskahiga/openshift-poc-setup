@@ -47,8 +47,9 @@ if [ -f "$CONFIG" ]; then
     NET_ID="$((i1 & m1))"."$((i2 & m2))"."$((i3 & m3))"."$((i4 & m4))"
 
     #Create variable file to be used by ansible playbooks
+    cd ocp4_ansible/
     eval "cat << EOF
-    $(<template.yml)
+    $(<vars/template.yml)
     EOF
     " >vars/main.yml
 
