@@ -4,7 +4,7 @@ uefi: false
 disk: sda                                  #disk where you are installing RHCOS on the masters/workers
 helper:
   name: "bastion"                          #hostname for your helper node
-  ipaddr: "$HELPER_ID"                #current IP address of the helper
+  ipaddr: "$HELPER_IP"                #current IP address of the helper
   networkifacename: "$NETWORK_INTERFACE"                 #interface of the helper node,ACTUAL name of the interface, NOT the NetworkManager name
 dns:
   domain: "$BASE_DOMAIN_NAME"                    #DNS server domain. Should match  baseDomain inside the install-config.yaml file.

@@ -48,9 +48,9 @@ if [ -f "$CONFIG" ]; then
     #Create variable file to be used by ansible playbooks
     cd ocp4_ansible/
     eval "cat << EOF
-    $(<vars/template.yml)
-    EOF
-    " >vars/main.yml
+$(<vars/template.yml)
+EOF
+" >vars/main.yml
 
 else
     echo "Cannot find config file. QUITING"
