@@ -1,8 +1,6 @@
 #! /bin/bash
 WORK_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 source $WORK_DIR/error_handler.sh
-source $WORK_DIR/helpers.sh
-CONFIG=${WORK_DIR}/test-config.sh
 if [ -f "$CONFIG" ]; then
     source ${CONFIG}
     #Confirm required user declared variables are not empty
