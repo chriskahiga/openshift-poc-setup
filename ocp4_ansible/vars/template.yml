@@ -16,8 +16,8 @@ dhcp:
   router: "$GATEWAY"                  #default gateway of the network assigned to the masters/workers
   bcast: "$BROADCAST"                 #broadcast address for your network
   netmask: "$NETMASK"                 #netmask that gets assigned to your masters/workers
-  poolstart: "192.168.100.10"              #First address in your dhcp address pool
-  poolend: "192.168.100.50"                #Last address in your dhcp address pool
+  poolstart: "$LOWER_LIMIT"              #First address in your dhcp address pool
+  poolend: "$UPPER_LIMIT"                #Last address in your dhcp address pool
   ipid: "$NET_ID"                    #ip network id for the range
   netmaskid: "$NETMASK"               #networkmask id for the range.
   ntp: "time.google.com"                   #ntp server address

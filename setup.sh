@@ -41,9 +41,12 @@ if [ -f "$CONFIG" ]; then
     BROADCAST=$(ip addr show | grep -w inet | grep -v 127.0.0.1 | awk '{ print $4}' | head -n 1)
     NETMASK=$(ifconfig | grep -w inet | grep -v 127.0.0.1 | awk '{print $4}' | cut -d ":" -f 2)
     #Calculate Network ID
-    IFS=. read -r i1 i2 i3 i4 <<<"$(ip route get 8.8.8.8 | awk '{print $7}')"
-    IFS=. read -r m1 m2 m3 m4 <<<"$(ifconfig | grep -w inet | grep -v 127.0.0.1 | awk '{print $4}' | cut -d ":" -f 2)"
+    IFS=. read -r i1 i2 i3 i4 <<<"$HELPER_IP"
+    IFS=. read -r m1 m2 m3 m4 <<<"$NETMASK"
     NET_ID="$((i1 & m1))"."$((i2 & m2))"."$((i3 & m3))"."$((i4 & m4))"
+    #Calculate ip range
+    LOWER_LIMIT="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4)+1))"
+    UPPER_LMIT="$((i1 & m1 | 255-m1)).$((i2 & m2 | 255-m2)).$((i3 & m3 | 255-m3)).$(((i4 & m4 | 255-m4)-1))"
 
     #Generate variable file to be used by ansible playbooks
     cd ocp4_ansible/
@@ -64,13 +67,13 @@ sudo mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.bak >>$LOGFILE
 on_error $? "Issue installing dhcpd package. Check logs at $LOGFILE"
 echo -e "OK" >>$LOGFILE
 
-echo -e "Setting up DHCP ..\n"
+echo -e "\nSetting up DHCP ..\n"
 echo -e "Setting up DHCP .." >> $LOGFILE
 ansible-playbook tasks/configure_dhcpd.yml >>$LOGFILE
 on_error $? "Issue setting up DHCP. Check logs at $LOGFILE"
 echo -e "OK" >>$LOGFILE
 echo -e "DHCP Setup Complete\n"
-sudo systemctl status dhcpd
+
 
 else
     echo "Cannot find config file. QUITING"
