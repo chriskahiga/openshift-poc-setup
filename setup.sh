@@ -45,12 +45,32 @@ if [ -f "$CONFIG" ]; then
     IFS=. read -r m1 m2 m3 m4 <<<"$(ifconfig | grep -w inet | grep -v 127.0.0.1 | awk '{print $4}' | cut -d ":" -f 2)"
     NET_ID="$((i1 & m1))"."$((i2 & m2))"."$((i3 & m3))"."$((i4 & m4))"
 
-    #Create variable file to be used by ansible playbooks
+    #Generate variable file to be used by ansible playbooks
     cd ocp4_ansible/
     eval "cat << EOF
 $(<vars/template.yml)
 EOF
 " >vars/main.yml
+
+#Begin environment setup
+LOGFILE=$WORK_DIR/update.log
+touch $LOGFILE
+echo -e "\nInstalling DHCP ..\n"
+echo -e "Installing DHCP .." >> $LOGFILE
+sudo yum -y remove dhcp-server >> $LOGFILE
+sudo yum -y install dhcp-server >> $LOGFILE
+sudo yum systemctl enable dhcpd >> $LOGFILE
+sudo mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.bak >>$LOGFILE
+on_error $? "Issue installing dhcpd package. Check logs at $LOGFILE"
+echo -e "OK" >>$LOGFILE
+
+echo -e "Setting up DHCP ..\n"
+echo -e "Setting up DHCP .." >> $LOGFILE
+ansible-playbook tasks/configure_dhcpd.yml >>$LOGFILE
+on_error $? "Issue setting up DHCP. Check logs at $LOGFILE"
+echo -e "OK" >>$LOGFILE
+echo -e "DHCP Setup Complete\n"
+sudo systemctl status dhcpd
 
 else
     echo "Cannot find config file. QUITING"
