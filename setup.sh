@@ -96,7 +96,7 @@ EOF
 
     sudo rm -rf /var/lib/tftpboot >>$LOGFILE
     sudo mkdir -p /var/lib/tftpboot/pxelinux.cfg
-    sudo cp -rvf /usr/share/syslinux/* /var/lib/tftpboot
+    sudo cp -rvf /usr/share/syslinux/* /var/lib/tftpboot >>LOGFILE
     sudo mkdir -p /var/lib/tftpboot/rhcos
 
     echo -e "\nDownloading Required Files ..\n"
@@ -122,7 +122,7 @@ EOF
     sudo firewall-cmd --add-port=8080/tcp --permanent
     sudo firewall-cmd --reload
     sudo mkdir -p /var/www/html/rhcos
-    wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-live-rootfs.x86_64.img >>$LOGFILE
+    wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-live-rootfs.x86_64.img >> $LOGFILE
     on_error $? "Could not download Red Hat CoreOSrootfs image. Check logs at $LOGFILE"
     sudo mv rhcos-live-rootfs.x86_64.img /var/www/html/rhcos/rootfs.img
     sudo restorecon -RFv /var/www/html/rhcos
@@ -150,7 +150,7 @@ EOF
     sudo semanage port -a 6443 -t http_port_t -p tcp >>$LOGFILE
     sudo semanage port -a 22623 -t http_port_t -p tcp >>$LOGFILE
     sudo semanage port -a 32700 -t http_port_t -p tcp >>$LOGFILE
-    on_error $? "Issue Configuring HAProxy. Check logs at $LOGFILE"
+    #on_error $? "Issue Configuring HAProxy. Check logs at $LOGFILE"
     sudo firewall-cmd --add-service={http,https} --permanent
     sudo firewall-cmd --add-port={6443,22623}/tcp --permanent
     sudo firewall-cmd --reload
