@@ -122,7 +122,7 @@ EOF
     sudo firewall-cmd --add-port=8080/tcp --permanent
     sudo firewall-cmd --reload
     sudo mkdir -p /var/www/html/rhcos
-    echo "\nDownloading Red HatCoreOSroofs image. This might take some time ..\n"
+    echo -e "\nDownloading Red HatCoreOSroofs image. This might take some time ..\n"
     wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-live-rootfs.x86_64.img >>$LOGFILE
     on_error $? "Could not download Red Hat CoreOSrootfs image. Check logs at $LOGFILE"
     sudo mv rhcos-live-rootfs.x86_64.img /var/www/html/rhcos/rootfs.img
@@ -161,7 +161,7 @@ EOF
 
     echo -e "\nNext Confirm Forward and Reverse DNS Resolution"
     echo -e "Then Downloading openshift-install, client binaries and generating SSH Keys,"
-    echo -e "And finally Generating Ignition Files"
+    echo -e "And finally Generating Ignition Files\n"
 else
     echo "Cannot find config file. QUITING"
 fi
