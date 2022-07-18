@@ -59,7 +59,7 @@ echo -e "\nInstalling DHCP ..\n"
 echo -e "Installing DHCP .." >> $LOGFILE
 sudo yum -y remove dhcp-server >> $LOGFILE
 sudo yum -y install dhcp-server >> $LOGFILE
-sudo yum systemctl enable dhcpd >> $LOGFILE
+sudo systemctl enable dhcpd >> $LOGFILE
 sudo mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.bak >>$LOGFILE
 on_error $? "Issue installing dhcpd package. Check logs at $LOGFILE"
 echo -e "OK" >>$LOGFILE
