@@ -17,14 +17,7 @@ WORKER_01_MAC_ADDRESS=
 
 WORKER_02_IP=
 WORKER_02_MAC_ADDRESS=
-#You can add extra masters and workers using the same 
-#format just ensure to include their ip and respective
-#mac address
-#e.g MASTER_04_IP=192.168.100.21
-#    MASTER_04_MAC_ADDRESS=52:54:00:31:4a:39
 
 #Network information
-GATEWAY=
 BASE_DOMAIN_NAME=
-NETMASK=
 DNS_1=
