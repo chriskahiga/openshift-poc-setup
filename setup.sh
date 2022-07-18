@@ -1,5 +1,6 @@
 #! /bin/bash
 WORK_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+CONFIG=$WORK_DIR/config.sh
 source $WORK_DIR/error_handler.sh
 if [ -f "$CONFIG" ]; then
     source ${CONFIG}
