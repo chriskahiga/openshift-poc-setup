@@ -20,4 +20,5 @@ WORKER_02_MAC_ADDRESS=
 
 #Network information
 BASE_DOMAIN_NAME=
-DNS_1=
+DNS=
+#DEVICE=

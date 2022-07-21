@@ -2,6 +2,7 @@
 WORK_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 CONFIG=$WORK_DIR/config.sh
 source $WORK_DIR/error_handler.sh
+source $WORK_DIR/helper.sh
 if [ -f "$CONFIG" ]; then
     source ${CONFIG}
     #Confirm required user declared variables are not empty
@@ -21,14 +22,11 @@ if [ -f "$CONFIG" ]; then
         [[ ${i} = *$ip_prefix ]] && valid_ip ${!i} ${i}
         [[ ${i} = *$mac_prefix ]] && valid_mac ${!i} ${i}
     done
-    for i in ${!DNS*}; do
-        is_variable_empty ${!i}
-        valid_ip ${!i} ${i}
-    done
     declare -A OTHERS
     OTHERS[BOOTSTRAP_IP]=$BOOTSTRAP_IP
     OTHERS[BOOTSTRAP_MAC_ADDRESS]=$BOOTSTRAP_MAC_ADDRESS
     OTHERS[BASE_DOMAIN_NAME]=$BASE_DOMAIN_NAME
+    OTHERS[DNS]=$DNS
     for i in ${!OTHERS[@]}; do
         is_variable_empty ${!i}
         [[ ${i} = *$ip_prefix ]] && valid_ip ${!i} ${i}
@@ -48,6 +46,8 @@ if [ -f "$CONFIG" ]; then
     LOWER_LIMIT="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4) + 1))"
     UPPER_LIMIT="$((i1 & m1 | 255 - m1)).$((i2 & m2 | 255 - m2)).$((i3 & m3 | 255 - m3)).$(((i4 & m4 | 255 - m4) - 1))"
 
+    #Check disk device if set else use /dev/sda
+    [ -z $DEVICE ] && DEVICE=/dev/sda
     #Generate variable file to be used by ansible playbooks
     cd ocp4_ansible/
     eval "cat << EOF
@@ -57,9 +57,9 @@ EOF
 
     #Begin environment setup
     LOGFILE=$WORK_DIR/update.log
-    touch $LOGFILE
-    echo -e "\nInstalling DHCP ..\n"
-    echo -e "Installing DHCP .." >>$LOGFILE
+    rm -f $LOGFILE && touch $LOGFILE
+    echo -e "\n STARTING SETUP OF ENVIRONMENT SERVICES ...\n" | tee $LOGFILE
+    echo -e "\nInstalling DHCP .." | tee $LOGFILE
     sudo yum -y remove dhcp-server >>$LOGFILE
     sudo yum -y install dhcp-server >>$LOGFILE
     sudo systemctl enable dhcpd >>$LOGFILE
@@ -67,8 +67,7 @@ EOF
     on_error $? "Issue installing dhcpd package. Check logs at $LOGFILE"
     echo -e "OK" >>$LOGFILE
 
-    echo -e "\nSetting up DHCP ..\n"
-    echo -e "Setting up DHCP .." >>$LOGFILE
+    echo -e "\nSetting up DHCP ..\n" | tee $LOGFILE
     ansible-playbook tasks/configure_dhcpd.yml >>$LOGFILE
     on_error $? "Issue setting up DHCP. Check logs at $LOGFILE"
     echo -e "OK" >>$LOGFILE
@@ -99,8 +98,7 @@ EOF
     sudo cp -rvf /usr/share/syslinux/* /var/lib/tftpboot >>LOGFILE
     sudo mkdir -p /var/lib/tftpboot/rhcos
 
-    echo -e "\nDownloading Required Files ..\n"
-    echo -e "\nDownloading Required Files ..\n" >>$LOGFILE
+    echo -e "\nDownloading Required Files ..\n" | tee $LOGFILE
     wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-kernel-x86_64 >>$LOGFILE
     on_error $? "Could not download kernel file. Check logs at $LOGFILE"
     sudo mv rhcos-installer-kernel-x86_64 /var/lib/tftpboot/rhcos/kernel
@@ -112,8 +110,7 @@ EOF
     ls /var/lib/tftpboot/rhcos
     echo -e "OK" >>$LOGFILE
 
-    echo -e "\nInstalling Apache ..\n"
-    echo -e "\nInstalling Apache ..\n" >>$LOGFILE
+    echo -e "\nInstalling Apache ..\n" | tee $LOGFILE
     sudo yum -y remove httpd >>$LOGFILE
     sudo yum -y install httpd >>$LOGFILE
     on_error $? "Could not install Apache. Check logs at $LOGFILE"
@@ -130,8 +127,7 @@ EOF
     echo -e "\nApache Setup Complete\n"
     echo -e "OK" >>$LOGFILE
 
-    echo -e "\nConfiguring TFTP Server ..\n"
-    echo -e "\nConfiguring TFTP Server ..\n" >>$LOGFILE
+    echo -e "\nConfiguring TFTP Server ..\n" | tee $LOGFILE
     ansible-playbook tasks/configure_tftp_pxe.yml >>$LOGFILE
     on_error $? "Issue Setting up TFTP Server. Check logs at $LOGFILE"
     echo -e "\nTFTP Setup Complete\n"
@@ -144,8 +140,7 @@ EOF
     sudo setsebool -P haproxy_connect_any 1
     sudo mv /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.default
 
-    echo -e "\nConfiguring HAProxy ..\n"
-    echo -e "\nConfiguring HAProxy ..\n" >>$LOGFILE
+    echo -e "\nConfiguring HAProxy ..\n" | tee $LOGFILE
     ansible-playbook tasks/configure_haproxy_lb.yml >>$LOGFILE
     on_error $? "Issue Configuring HAProxy. Check logs at $LOGFILE"
     sudo semanage port -a 6443 -t http_port_t -p tcp >>$LOGFILE
@@ -159,9 +154,80 @@ EOF
     echo -e "OK" >>$LOGFILE
     echo -e "\nEnvironment Setup Complete\n"
 
-    echo -e "\nNext Confirm Forward and Reverse DNS Resolution"
-    echo -e "Then Downloading openshift-install, client binaries and generating SSH Keys,"
-    echo -e "And finally Generating Ignition Files\n"
+    echo -e "\nConfirming Forward and Reverse DNS Resolution\n"
+    RECORDS=(bootstrap.ocp4.$BASE_DOMAIN_NAME master01.ocp4.$BASE_DOMAIN_NAME master02.ocp4.$BASE_DOMAIN_NAME master01.ocp4.$BASE_DOMAIN_NAME worker01.ocp4.$BASE_DOMAIN_NAME worker02.ocp4.$BASE_DOMAIN_NAME)
+    for i in ${RECORDS[@]}; do
+        dns_resolve $i
+    done
+    echo -e "\nDNS Requirements Successfully Confirmed\n"
+    echo -e "OK" >>$LOGFILE
+
+    echo -e "\nDownloading openshift-install, client binaries and generating SSH Keys ..\n"
+    echo -e "\nDownloading openshift client binaries"
+    rm -f openshift-client-linux.tar.gz >>$LOGFILE
+    wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz >>$LOGFILE
+    on_error $? "Could not download openshift client binaries. Check logs at $LOGFILE"
+    tar xvf openshift-client-linux.tar.gz >>$LOGFILE
+    sudo rm -f /usr/local/bin/oc && sudo rm -f /usr/local/bin/kubectl >>$LOGFILE
+    sudo mv oc kubectl /usr/local/bin
+    rm -f README.md LICENSE openshift-client-linux.tar.gz >>$LOGFILE
+    echo -e "openshift client binaries downloaded and installed\n" | tee $LOGFILE
+    echo -e "OK" | tee $LOGFILE
+
+    echo -e "Downloading openshift install\n" | tee $LOGFILE
+    rm -f openshift-install-linux.tar.gz >>$LOGFILE
+    wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux.tar.gz >>$LOGFILE
+    on_error $? "Could not download openshift install. Check logs at $LOGFILE"
+    tar xvf openshift-install-linux.tar.gz >>$LOGFILE
+    sudo rm -f /usr/local/bin/openshift-install >>$LOGFILE
+    sudo mv openshift-install /usr/local/bin
+    rm -f README.md LICENSE openshift-install-linux.tar.gz
+    echo -e "openshift install downloaded and installed\n" | tee $LOGFILE
+
+    echo -e "Generating SSH Keys\n" | tee $LOGFILE
+    ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa <<<y >>$LOGFILE
+    on_error $? "Could not generate SSH Keys. Check logs at $LOGFILE"
+    echo -e "SSH keys generated\n" | tee $LOGFILE
+
+    echo -e "\nPreparing to generate ignition files..\n" | tee $LOGFILE
+    echo -e "Downloading pull secret\n" | tee $LOGFILE
+    source files/access.sh
+    PULL_SECRET=$(curl -X POST https://api.openshift.com/api/accounts_mgmt/v1/access_token --header "Content-Type:application/json" --header "Authorization: Bearer $BEARER") >>$LOGFILE
+    rm -rf ~/.openshift && mkdir ~/.openshift >>$LOGFILE
+    echo $PULL_SECRET >~/.openshift/pull-secret
+    rm -rf ~/ocp4 && mkdir -p ~/ocp4 >>$LOGFILE
+    cp files/install-config-base.yaml ~/ocp4/install-config.yaml
+    echo -e "Creating Manifest Files\n" | tee $LOGFILE
+    openshift-install --dir ~/ocp4 create manifests >>$LOGFILE
+    on_error $? "Unable to create manifest files. Check logs at $LOGFILE"
+    #Disabling pod scheduling on masters
+    sed -i 's/true/false/' manifests/cluster-scheduler-02-config.yml
+    echo -e "Creating Ignition Files\n" | tee $LOGFILE
+    openshift-install --dir ~/ocp4 create ignition-configs >>$LOGFILE
+    on_error $? "Unable to create ignition files. Check logs at $LOGFILE"
+    echo -e "\nIgnition Files successfully generated" | tee $LOGFILE
+
+    echo -e "\nCopying ignition files to Apache ..\n"
+    sudo rm -rf /var/www/html/ignition && sudo mkdir -p /var/www/html/ignition >>$LOGFILE
+    sudo cp -v ~/ocp4/*.ign /var/www/html/ignition
+    sudo chmod 644 /var/www/html/ignition/*.ign
+    sudo restorecon -RFv /var/www/html/
+
+    echo -e "\nConfirming all services are running ..\n" | tee $LOGFILE
+    SERVICES=(haproxy dhcpd tftp httpd)
+    for i in ${SERVICES[@]}; do
+        systemctl enable $i >> $LOGFILE
+        systemctl is-active --quiet $i
+        if [ "$?" -ne 0 ]; then
+                systemctl restart $i >> $LOGFILE
+                systemctl is-active --quiet $i
+                on_error $? "$i is not running and is unable to restart. Check logs at $LOGFILE"
+        fi
+    done
+
+    echo -e "\nENVIRONMENT SERVICES SETUP COMPLETE. PROCEED TO START INSTALLATION\n"
+
 else
+
     echo "Cannot find config file. QUITING"
 fi

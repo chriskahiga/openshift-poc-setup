@@ -1,7 +1,7 @@
 ---
 ppc64le: false
 uefi: false
-disk: sda                                  #disk where you are installing RHCOS on the masters/workers
+disk: $DEVICE                              #disk where you are installing RHCOS on the masters/workers
 helper:
   name: "bastion"                          #hostname for your helper node
   ipaddr: "$HELPER_IP"                #current IP address of the helper
