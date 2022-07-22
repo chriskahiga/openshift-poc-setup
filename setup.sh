@@ -66,13 +66,13 @@ EOF
     sudo systemctl enable dhcpd >>$LOGFILE 2>&1
     sudo mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.bak >>$LOGFILE 2>&1
     on_error $? "Issue installing dhcpd package. Check logs at $LOGFILE"
-    echo -e "\nOK" | tee $LOGFILE
+    echo -e "OK" >>$LOGFILE
 
     echo -e "\nSetting up DHCP .." | tee $LOGFILE
     ansible-playbook tasks/configure_dhcpd.yml >>$LOGFILE 2>&1
     on_error $? "Issue setting up DHCP. Check logs at $LOGFILE"
-    echo -e "\nOK" | tee $LOGFILE
     echo -e "DHCP Setup Complete" | tee $LOGFILE
+    echo -e "OK" >>$LOGFILE
 
     echo -e "\nInstalling TFTP Server .." | tee $LOGFILE
     sudo yum remove -y tftp-server syslinux >>$LOGFILE 2>&1
@@ -91,7 +91,7 @@ EOF
     sudo systemctl enable --now tftp helper-tftp >>$LOGFILE 2>&1
     on_error $? "Issue installing TFTP. Check logs at $LOGFILE"
     echo -e "\nTFTP Installed" | tee $LOGFILE
-    echo -e "\nOK" | tee $LOGFILE
+    echo -e "OK" >>$LOGFILE
 
     sudo rm -rf /var/lib/tftpboot >>$LOGFILE 2>&1
     sudo mkdir -p /var/lib/tftpboot/pxelinux.cfg >>$LOGFILE 2>&1
@@ -108,7 +108,7 @@ EOF
     sudo restorecon -RFv /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
     echo -e "\nFiles Successfully Downloaded" >>$LOGFILE
     ls /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
-    echo -e "\nOK" | tee $LOGFILE
+    echo -e "OK" >>$LOGFILE
 
     echo -e "\nInstalling Apache .." | tee $LOGFILE
     sudo yum -y remove httpd >>$LOGFILE 2>&1
@@ -126,7 +126,7 @@ EOF
     sudo mv rhcos-live-rootfs.x86_64.img /var/www/html/rhcos/rootfs.img >>$LOGFILE 2>&1
     sudo restorecon -RFv /var/www/html/rhcos >>$LOGFILE 2>&1
     echo -e "\nApache Setup Complete" | tee $LOGFILE
-    echo -e "\nOK" | tee $LOGFILE
+    echo -e "OK" >>$LOGFILE
 
     echo -e "\nConfiguring TFTP Server .." | tee $LOGFILE
     ansible-playbook tasks/configure_tftp_pxe.yml >>$LOGFILE 2>&1
@@ -151,7 +151,7 @@ EOF
     sudo firewall-cmd --add-port={6443,22623}/tcp --permanent >>$LOGFILE 2>&1
     sudo firewall-cmd --reload >>$LOGFILE 2>&1
     echo -e "\nHAProxy Setup Complete" | tee $LOGFILE
-    echo -e "\nOK" | tee $LOGFILE
+    echo -e "OK" >>$LOGFILE
     echo -e "\nEnvironment Setup Complete" | tee $LOGFILE
 
     echo -e "\nConfirming Forward and Reverse DNS Resolution" | tee $LOGFILE
@@ -160,7 +160,7 @@ EOF
         dns_resolve $i
     done
     echo -e "\nDNS Requirements Successfully Confirmed" | tee $LOGFILE
-    echo -e "\nOK" | tee $LOGFILE
+    echo -e "OK" >>$LOGFILE
 
     echo -e "\nDownloading openshift-install, client binaries and generating SSH Keys .." | tee $LOGFILE
     echo -e "\nDownloading openshift client binaries" >>$LOGFILE
@@ -172,7 +172,7 @@ EOF
     sudo mv oc kubectl /usr/local/bin >>$LOGFILE 2>&1
     rm -f README.md LICENSE openshift-client-linux.tar.gz >>$LOGFILE 2>&1
     echo -e "Openshift client binaries downloaded and installed" | tee $LOGFILE
-    echo -e "\nOK" | tee $LOGFILE
+    echo -e "OK" >>$LOGFILE
 
     echo -e "\nDownloading openshift install" | tee $LOGFILE
     rm -f openshift-install-linux.tar.gz >>$LOGFILE 2>&1
