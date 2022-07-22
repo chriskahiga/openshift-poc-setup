@@ -19,5 +19,5 @@ networking:
   - 172.30.0.0/16
 platform:
   none: {}
-pullSecret: "$(< ~/.openshift/pull-secret)"
+pullSecret: "$PULL_SECRET"
 sshKey: "$(< ~/.ssh/id_rsa.pub)"

@@ -4,6 +4,7 @@ CONFIG=$WORK_DIR/config.sh
 source $WORK_DIR/error_handler.sh
 source $WORK_DIR/helper.sh
 if [ -f "$CONFIG" ]; then
+    echo -e "Validating Configuration File ...." | tee $LOGFILE
     source ${CONFIG}
     #Confirm required user declared variables are not empty
     ip_prefix='_IP'
@@ -32,6 +33,7 @@ if [ -f "$CONFIG" ]; then
         [[ ${i} = *$ip_prefix ]] && valid_ip ${!i} ${i}
         [[ ${i} = *$mac_prefix ]] && valid_mac ${!i} ${i}
     done
+    echo -e "\nConfiguration successfully validate\n" | tee $LOGFILE
     #Set additional variables
     HELPER_IP=$(ip route get 8.8.8.8 | awk '{print $7}')
     NETWORK_INTERFACE=$(ip route get 8.8.8.8 | awk '{print $5}')
@@ -190,13 +192,14 @@ EOF
     echo -e "SSH keys generated\n" | tee $LOGFILE
 
     echo -e "\nPreparing to generate ignition files..\n" | tee $LOGFILE
-    echo -e "Downloading pull secret\n" | tee $LOGFILE
-    source files/access.sh
-    BEARER=$(curl --silent --data-urlencode "grant_type=refresh_token" --data-urlencode "client_id=cloud-services" --data-urlencode "refresh_token=${OFFLINE_ACCESS_TOKEN}" https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token | jq -r .access_token)
-    PULL_SECRET=$(curl -X POST https://api.openshift.com/api/accounts_mgmt/v1/access_token --header "Content-Type:application/json" --header "Authorization: Bearer $BEARER") >>$LOGFILE
-    rm -rf ~/.openshift && mkdir ~/.openshift >>$LOGFILE
-    echo $PULL_SECRET >~/.openshift/pull-secret
+    echo -e "Getting pull secret\n" | tee $LOGFILE
+    source files/secret.sh
+    
     rm -rf ~/ocp4 && mkdir -p ~/ocp4 >>$LOGFILE
+    eval "cat << EOF
+$(<files/install-config-base.yaml)
+EOF
+" >~/ocp4/install-config.yaml
     cp files/install-config-base.yaml ~/ocp4/install-config.yaml
     echo -e "Creating Manifest Files\n" | tee $LOGFILE
     openshift-install --dir ~/ocp4 create manifests >>$LOGFILE
