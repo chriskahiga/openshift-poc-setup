@@ -4,7 +4,7 @@ CONFIG=$WORK_DIR/config.sh
 source $WORK_DIR/error_handler.sh
 source $WORK_DIR/helper.sh
 if [ -f "$CONFIG" ]; then
-    echo -e "Validating Configuration File ...." | tee $LOGFILE
+    echo -e "\nValidating Configuration File ....\n" | tee $LOGFILE
     source ${CONFIG}
     #Confirm required user declared variables are not empty
     ip_prefix='_IP'
@@ -33,7 +33,7 @@ if [ -f "$CONFIG" ]; then
         [[ ${i} = *$ip_prefix ]] && valid_ip ${!i} ${i}
         [[ ${i} = *$mac_prefix ]] && valid_mac ${!i} ${i}
     done
-    echo -e "\nConfiguration successfully validate\n" | tee $LOGFILE
+    echo -e "Configuration successfully validated\n" | tee $LOGFILE
     #Set additional variables
     HELPER_IP=$(ip route get 8.8.8.8 | awk '{print $7}')
     NETWORK_INTERFACE=$(ip route get 8.8.8.8 | awk '{print $5}')
@@ -194,13 +194,12 @@ EOF
     echo -e "\nPreparing to generate ignition files..\n" | tee $LOGFILE
     echo -e "Getting pull secret\n" | tee $LOGFILE
     source files/secret.sh
-    
+
     rm -rf ~/ocp4 && mkdir -p ~/ocp4 >>$LOGFILE
     eval "cat << EOF
 $(<files/install-config-base.yaml)
 EOF
 " >~/ocp4/install-config.yaml
-    cp files/install-config-base.yaml ~/ocp4/install-config.yaml
     echo -e "Creating Manifest Files\n" | tee $LOGFILE
     openshift-install --dir ~/ocp4 create manifests >>$LOGFILE
     on_error $? "\nUnable to create manifest files. Check logs at $LOGFILE\n"
