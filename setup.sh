@@ -55,9 +55,9 @@ if [ -f "$CONFIG" ]; then
     #Generate variable file to be used by ansible playbooks
     cd ocp4_ansible/
     eval "cat << EOF
- $(<vars/template.yml)
- EOF
- " >vars/main.yml
+$(<vars/template.yml)
+EOF
+" >vars/main.yml
     #Begin environment setup
     echo -e "\n STARTING SETUP OF ENVIRONMENT SERVICES ...\n" | tee $LOGFILE
     echo -e "\nInstalling DHCP .." | tee $LOGFILE
