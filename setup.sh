@@ -192,6 +192,7 @@ EOF
     echo -e "\nPreparing to generate ignition files..\n" | tee $LOGFILE
     echo -e "Downloading pull secret\n" | tee $LOGFILE
     source files/access.sh
+    BEARER=$(curl --silent --data-urlencode "grant_type=refresh_token" --data-urlencode "client_id=cloud-services" --data-urlencode "refresh_token=${OFFLINE_ACCESS_TOKEN}" https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token | jq -r .access_token)
     PULL_SECRET=$(curl -X POST https://api.openshift.com/api/accounts_mgmt/v1/access_token --header "Content-Type:application/json" --header "Authorization: Bearer $BEARER") >>$LOGFILE
     rm -rf ~/.openshift && mkdir ~/.openshift >>$LOGFILE
     echo $PULL_SECRET >~/.openshift/pull-secret
@@ -199,7 +200,7 @@ EOF
     cp files/install-config-base.yaml ~/ocp4/install-config.yaml
     echo -e "Creating Manifest Files\n" | tee $LOGFILE
     openshift-install --dir ~/ocp4 create manifests >>$LOGFILE
-    on_error $? "Unable to create manifest files. Check logs at $LOGFILE"
+    on_error $? "\nUnable to create manifest files. Check logs at $LOGFILE\n"
     #Disabling pod scheduling on masters
     sed -i 's/true/false/' manifests/cluster-scheduler-02-config.yml
     echo -e "Creating Ignition Files\n" | tee $LOGFILE
