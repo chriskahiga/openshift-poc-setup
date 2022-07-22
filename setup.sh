@@ -64,7 +64,7 @@ EOF
     echo -e "\nInstalling DHCP .." | tee $LOGFILE
     sudo yum -y remove dhcp-server >>$LOGFILE
     sudo yum -y install dhcp-server >>$LOGFILE
-    sudo systemctl enable dhcpd >>$LOGFILE
+    sudo systemctl enable dhcpd >>$LOGFILE 2>>&1
     sudo mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.bak >>$LOGFILE
     on_error $? "Issue installing dhcpd package. Check logs at $LOGFILE"
     echo -e "OK" >>$LOGFILE
@@ -204,7 +204,7 @@ EOF
     openshift-install --dir ~/ocp4 create manifests >>$LOGFILE
     on_error $? "\nUnable to create manifest files. Check logs at $LOGFILE\n"
     #Disabling pod scheduling on masters
-    sed -i 's/true/false/' manifests/cluster-scheduler-02-config.yml
+    sed -i 's/true/false/' ~/ocp4/manifests/cluster-scheduler-02-config.yml
     echo -e "Creating Ignition Files\n" | tee $LOGFILE
     openshift-install --dir ~/ocp4 create ignition-configs >>$LOGFILE
     on_error $? "Unable to create ignition files. Check logs at $LOGFILE"
@@ -212,9 +212,9 @@ EOF
 
     echo -e "\nCopying ignition files to Apache ..\n"
     sudo rm -rf /var/www/html/ignition && sudo mkdir -p /var/www/html/ignition >>$LOGFILE
-    sudo cp -v ~/ocp4/*.ign /var/www/html/ignition
-    sudo chmod 644 /var/www/html/ignition/*.ign
-    sudo restorecon -RFv /var/www/html/
+    sudo cp -v ~/ocp4/*.ign /var/www/html/ignition >>$LOGFILE
+    sudo chmod 644 /var/www/html/ignition/*.ign >>$LOGFILE
+    sudo restorecon -RFv /var/www/html/ >>$LOGFILE
 
     echo -e "\nConfirming all services are running ..\n" | tee $LOGFILE
     SERVICES=(haproxy dhcpd tftp httpd)
