@@ -59,7 +59,7 @@ $(<vars/template.yml)
 EOF
 " >vars/main.yml
     #Begin environment setup
-    echo -e "\n STARTING SETUP OF ENVIRONMENT SERVICES ..." | tee $LOGFILE
+    echo -e "\nSTARTING SETUP OF ENVIRONMENT SERVICES ..." | tee $LOGFILE
     echo -e "\nInstalling DHCP .." | tee $LOGFILE
     sudo yum -y remove dhcp-server >>$LOGFILE 2>&1
     sudo yum -y install dhcp-server >>$LOGFILE 2>&1
@@ -174,7 +174,7 @@ EOF
     echo -e "Openshift client binaries downloaded and installed" | tee $LOGFILE
     echo -e "\nOK" | tee $LOGFILE
 
-    echo -e "Downloading openshift install" | tee $LOGFILE
+    echo -e "\nDownloading openshift install" | tee $LOGFILE
     rm -f openshift-install-linux.tar.gz >>$LOGFILE 2>&1
     wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux.tar.gz >>$LOGFILE 2>&1
     on_error $? "Could not download openshift install. Check logs at $LOGFILE"
@@ -226,8 +226,7 @@ EOF
         fi
     done
 
-    echo -e "\nENVIRONMENT SERVICES SETUP COMPLETE. PROCEED TO START INSTALLATION" | tee $LOGFILE
-
+    echo -e "\nENVIRONMENT SERVICES SETUP COMPLETE. PROCEED TO START INSTALLATION\n" | tee $LOGFILE
 else
 
     echo "Cannot find config file. QUITING" >>$LOGFILE
