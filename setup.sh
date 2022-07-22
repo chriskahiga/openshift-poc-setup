@@ -3,6 +3,7 @@ WORK_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 CONFIG=$WORK_DIR/config.sh
 source $WORK_DIR/error_handler.sh
 source $WORK_DIR/helper.sh
+#Checking some pre-requisites
 if [ -f "$CONFIG" ]; then
     LOGFILE=$WORK_DIR/update.log
     rm -f $LOGFILE && touch $LOGFILE
@@ -35,7 +36,8 @@ if [ -f "$CONFIG" ]; then
         [[ ${i} = *$ip_prefix ]] && valid_ip ${!i} ${i}
         [[ ${i} = *$mac_prefix ]] && valid_mac ${!i} ${i}
     done
-    echo -e "\nConfiguration successfully validated" | tee $LOGFILE
+    echo -e "\nSuccessfully validated Configuration File" | tee $LOGFILE
+
     #Set additional variables
     HELPER_IP=$(ip route get 8.8.8.8 | awk '{print $7}')
     NETWORK_INTERFACE=$(ip route get 8.8.8.8 | awk '{print $5}')
@@ -58,6 +60,22 @@ if [ -f "$CONFIG" ]; then
 $(<vars/template.yml)
 EOF
 " >vars/main.yml
+    
+    #Checking pre-requisites
+    echo -e "\nChecking pre-requisites ..." | tee $LOGFILE
+    echo -e "\nConfirming OS Version .." | tee $LOGFILE
+    source /etc/os-release >>$LOGFILE 2>&1
+    on_error $? "Could not confirm OS version. Check logs at $LOGFILE\n"
+    [ -z "$VERSION" ] && {on_error 1 "Could not confirm OS Version"}
+    [[ $VERSION == 8* ]] && echo -e "\nSuccessfully Confirmed OS Version" || on_error 1 "Please run this setup on Red Hat Linux version 8.*.EXITING\n"
+    echo -e "\nConfirming Forward and Reverse DNS Resolution" | tee $LOGFILE
+    RECORDS=(bootstrap.ocp4.$BASE_DOMAIN_NAME master01.ocp4.$BASE_DOMAIN_NAME master02.ocp4.$BASE_DOMAIN_NAME master01.ocp4.$BASE_DOMAIN_NAME worker01.ocp4.$BASE_DOMAIN_NAME worker02.ocp4.$BASE_DOMAIN_NAME)
+    for i in ${RECORDS[@]}; do
+        dns_resolve $i
+    done
+    echo -e "\nSuccessfully Confirmed DNS requirements" | tee $LOGFILE
+    echo -e "\nOK\n" >>$LOGFILE
+    
     #Begin environment setup
     echo -e "\nSTARTING SETUP OF ENVIRONMENT SERVICES ..." | tee $LOGFILE
     echo -e "\nInstalling DHCP .." | tee $LOGFILE
@@ -66,13 +84,13 @@ EOF
     sudo systemctl enable dhcpd >>$LOGFILE 2>&1
     sudo mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.bak >>$LOGFILE 2>&1
     on_error $? "Issue installing dhcpd package. Check logs at $LOGFILE"
-    echo -e "OK" >>$LOGFILE
+    echo -e "\nOK\n" >>$LOGFILE
 
     echo -e "\nSetting up DHCP .." | tee $LOGFILE
     ansible-playbook tasks/configure_dhcpd.yml >>$LOGFILE 2>&1
     on_error $? "Issue setting up DHCP. Check logs at $LOGFILE"
-    echo -e "DHCP Setup Complete" | tee $LOGFILE
-    echo -e "OK" >>$LOGFILE
+    echo -e "\nSuccessfully installed DHCP" | tee $LOGFILE
+    echo -e "\nOK\n" >>$LOGFILE
 
     echo -e "\nInstalling TFTP Server .." | tee $LOGFILE
     sudo yum remove -y tftp-server syslinux >>$LOGFILE 2>&1
@@ -90,15 +108,15 @@ EOF
     sudo systemctl daemon-reload >>$LOGFILE 2>&1
     sudo systemctl enable --now tftp helper-tftp >>$LOGFILE 2>&1
     on_error $? "Issue installing TFTP. Check logs at $LOGFILE"
-    echo -e "\nTFTP Installed" | tee $LOGFILE
-    echo -e "OK" >>$LOGFILE
+    echo -e "\nSuccessfully installed TFTP" | tee $LOGFILE
+    echo -e "\nOK\n" >>$LOGFILE
 
     sudo rm -rf /var/lib/tftpboot >>$LOGFILE 2>&1
     sudo mkdir -p /var/lib/tftpboot/pxelinux.cfg >>$LOGFILE 2>&1
     sudo cp -rvf /usr/share/syslinux/* /var/lib/tftpboot >>LOGFILE >>$LOGFILE 2>&1
     sudo mkdir -p /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
 
-    echo -e "\nDownloading Required Files .." | tee $LOGFILE
+    echo -e "\nDownloading RHCOS Kernel and Installer Image. Please wait this might take some time .." | tee $LOGFILE
     wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-kernel-x86_64 >>$LOGFILE 2>&1
     on_error $? "Could not download kernel file. Check logs at $LOGFILE"
     sudo mv rhcos-installer-kernel-x86_64 /var/lib/tftpboot/rhcos/kernel >>$LOGFILE 2>&1
@@ -106,9 +124,9 @@ EOF
     on_error $? "Could not download installer image. Check logs at $LOGFILE"
     sudo mv rhcos-installer-initramfs.x86_64.img /var/lib/tftpboot/rhcos/initramfs.img >>$LOGFILE 2>&1
     sudo restorecon -RFv /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
-    echo -e "\nFiles Successfully Downloaded" >>$LOGFILE
+    echo -e "\nSuccessfully Downloaded" >>$LOGFILE
     ls /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
-    echo -e "OK" >>$LOGFILE
+    echo -e "\nOK\n" >>$LOGFILE
 
     echo -e "\nInstalling Apache .." | tee $LOGFILE
     sudo yum -y remove httpd >>$LOGFILE 2>&1
@@ -125,13 +143,13 @@ EOF
     echo -e "\nRed Hat CoreOSrootfs image donwloaded" | tee $LOGFILE
     sudo mv rhcos-live-rootfs.x86_64.img /var/www/html/rhcos/rootfs.img >>$LOGFILE 2>&1
     sudo restorecon -RFv /var/www/html/rhcos >>$LOGFILE 2>&1
-    echo -e "\nApache Setup Complete" | tee $LOGFILE
-    echo -e "OK" >>$LOGFILE
+    echo -e "\nSuccessfully setup Apache" | tee $LOGFILE
+    echo -e "\nOK\n" >>$LOGFILE
 
     echo -e "\nConfiguring TFTP Server .." | tee $LOGFILE
     ansible-playbook tasks/configure_tftp_pxe.yml >>$LOGFILE 2>&1
     on_error $? "Issue Setting up TFTP Server. Check logs at $LOGFILE"
-    echo -e "\nTFTP Setup Complete" | tee $LOGFILE
+    echo -e "\nSuccessfully setup TFTP" | tee $LOGFILE
 
     echo -e "\nInstalling HAProxy .." | tee $LOGFILE
     sudo yum remove -y haproxy >>$LOGFILE 2>&1
@@ -150,17 +168,9 @@ EOF
     sudo firewall-cmd --add-service={http,https} --permanent >>$LOGFILE 2>&1
     sudo firewall-cmd --add-port={6443,22623}/tcp --permanent >>$LOGFILE 2>&1
     sudo firewall-cmd --reload >>$LOGFILE 2>&1
-    echo -e "\nHAProxy Setup Complete" | tee $LOGFILE
-    echo -e "OK" >>$LOGFILE
-    echo -e "\nEnvironment Setup Complete" | tee $LOGFILE
-
-    echo -e "\nConfirming Forward and Reverse DNS Resolution" | tee $LOGFILE
-    RECORDS=(bootstrap.ocp4.$BASE_DOMAIN_NAME master01.ocp4.$BASE_DOMAIN_NAME master02.ocp4.$BASE_DOMAIN_NAME master01.ocp4.$BASE_DOMAIN_NAME worker01.ocp4.$BASE_DOMAIN_NAME worker02.ocp4.$BASE_DOMAIN_NAME)
-    for i in ${RECORDS[@]}; do
-        dns_resolve $i
-    done
-    echo -e "\nDNS Requirements Successfully Confirmed" | tee $LOGFILE
-    echo -e "OK" >>$LOGFILE
+    echo -e "\nSuccessfully setup HAProxy" | tee $LOGFILE
+    echo -e "\nOK\n" >>$LOGFILE
+    echo -e "\nEnvironment Setup Successful" | tee $LOGFILE
 
     echo -e "\nDownloading openshift-install, client binaries and generating SSH Keys .." | tee $LOGFILE
     echo -e "\nDownloading openshift client binaries" >>$LOGFILE
@@ -171,18 +181,18 @@ EOF
     sudo rm -f /usr/local/bin/oc && sudo rm -f /usr/local/bin/kubectl >>$LOGFILE 2>&1
     sudo mv oc kubectl /usr/local/bin >>$LOGFILE 2>&1
     rm -f README.md LICENSE openshift-client-linux.tar.gz >>$LOGFILE 2>&1
-    echo -e "Openshift client binaries downloaded and installed" | tee $LOGFILE
-    echo -e "OK" >>$LOGFILE
+    echo -e "Successfully downloaded and installed openshshift" | tee $LOGFILE
+    echo -e "\nOK\n" >>$LOGFILE
 
     echo -e "\nDownloading openshift install" | tee $LOGFILE
     rm -f openshift-install-linux.tar.gz >>$LOGFILE 2>&1
     wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux.tar.gz >>$LOGFILE 2>&1
-    on_error $? "Could not download openshift install. Check logs at $LOGFILE"
+    on_error $? "Could not download openshift-nstall. Check logs at $LOGFILE"
     tar xvf openshift-install-linux.tar.gz >>$LOGFILE 2>&1
     sudo rm -f /usr/local/bin/openshift-install >>$LOGFILE 2>&1
     sudo mv openshift-install /usr/local/bin >>$LOGFILE 2>&1
     rm -f README.md LICENSE openshift-install-linux.tar.gz >>$LOGFILE 2>&1
-    echo -e "openshift install downloaded and installed" | tee $LOGFILE
+    echo -e "Successfully donwloaded and installed openshift-install" | tee $LOGFILE
 
     echo -e "Generating SSH Keys" | tee $LOGFILE
     ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa <<<y >>$LOGFILE 2>&1
@@ -226,8 +236,7 @@ EOF
         fi
     done
 
-    echo -e "\nENVIRONMENT SERVICES SETUP COMPLETE. PROCEED TO START INSTALLATION\n" | tee $LOGFILE
+    echo -e "\nENVIRONMENT SERVICES SETUP SUCCESSFUL\n" | tee $LOGFILE
 else
-
     echo "Cannot find config file. QUITING" >>$LOGFILE
 fi
