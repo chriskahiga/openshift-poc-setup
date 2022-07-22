@@ -4,6 +4,8 @@ CONFIG=$WORK_DIR/config.sh
 source $WORK_DIR/error_handler.sh
 source $WORK_DIR/helper.sh
 if [ -f "$CONFIG" ]; then
+    LOGFILE=$WORK_DIR/update.log
+    rm -f $LOGFILE && touch $LOGFILE
     echo -e "\nValidating Configuration File ....\n" | tee $LOGFILE
     source ${CONFIG}
     #Confirm required user declared variables are not empty
@@ -57,8 +59,6 @@ if [ -f "$CONFIG" ]; then
  EOF
  " >vars/main.yml
     #Begin environment setup
-    LOGFILE=$WORK_DIR/update.log
-    rm -f $LOGFILE && touch $LOGFILE
     echo -e "\n STARTING SETUP OF ENVIRONMENT SERVICES ...\n" | tee $LOGFILE
     echo -e "\nInstalling DHCP .." | tee $LOGFILE
     sudo yum -y remove dhcp-server >>$LOGFILE 2>&1
