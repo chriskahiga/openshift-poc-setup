@@ -20,6 +20,7 @@ if [[ -f $CONFIG_FILE ]]; then
             [nN])
                 echo -e "\nRestarting Setup .."
                 reset_progress
+                source $WORK_DIR/set_progress
                 break
                 ;;
             *) echo -e "invalid response" ;;
