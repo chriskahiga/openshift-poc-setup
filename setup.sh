@@ -9,9 +9,8 @@ LOGFILE=$WORK_DIR/update.log
 
 #yq is required
 if ! [ -x "$(command -v yq)" ]; then
-    YQ_VERSION=
-    YQ_BINARY=
-    wget https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_arm.tar.gz -O - | tar xz && mv yq_linux_arm /usr/bin/yq
+    echo -e "\nDownloading Yq"
+    wget https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_arm.tar.gz -O - | tar xz && mv yq_linux_arm /usr/bin/yq >>$LOGFILE 2>&1
 fi
 
 if [[ -f $CONFIG_FILE ]]; then
