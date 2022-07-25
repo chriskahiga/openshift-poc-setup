@@ -64,5 +64,5 @@ RHCOS_INSTALLER=0
 RHCOS_ROOTFS=0
 OCP_INSTALLER=0
 OCP_FILES=0
-RESUME=0' > set_progress.sh
+RESUME=0' > $WORK_DIR/set_progress.sh
 }
