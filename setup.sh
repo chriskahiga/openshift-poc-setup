@@ -5,12 +5,12 @@ source $WORK_DIR/error_handler.sh
 source $WORK_DIR/helper.sh
 source $WORK_DIR/set_progress.sh
 PROGRESS_FILE=$WORK_DIR/set_progress.sh
+LOGFILE=$WORK_DIR/update.log
+rm -f $LOGFILE && touch $LOGFILE
 
 #VALIDATE AND CONFIRM CONFIGS
 if [ $CONFIGS -ne 'OK' ]; then
     if [ -f "$CONFIG_FILE" ]; then
-        LOGFILE=$WORK_DIR/update.log
-        rm -f $LOGFILE && touch $LOGFILE
         echo -e "\nValidating Configuration File ...." | tee $LOGFILE
         source ${CONFIG}
         #Confirm required config file variables are not empty
