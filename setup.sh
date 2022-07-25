@@ -9,7 +9,7 @@ LOGFILE=$WORK_DIR/update.log
 rm -f $LOGFILE && touch $LOGFILE
 
 #VALIDATE AND CONFIRM CONFIGS
-if [ $CONFIGS -ne "OK" ]; then
+if [ $CONFIGS != 'OK' ]; then
     if [ -f "$CONFIG_FILE" ]; then
         echo -e "\nValidating Configuration File ...." | tee $LOGFILE
         source ${CONFIG}
@@ -66,7 +66,7 @@ if [ $CONFIGS -ne "OK" ]; then
 $(<vars/template.yml)
 EOF
 " >vars/main.yml
-    if [ $PRE_REQS -ne 'OK']; then
+    if [ $PRE_REQS != 'OK']; then
         #Checking pre-requisites
         echo -e "\nChecking pre-requisites ..." | tee $LOGFILE
         echo -e "\nConfirming OS Version .." | tee $LOGFILE
@@ -85,7 +85,7 @@ EOF
     fi
     #Begin environment setup
     echo -e "\nSTARTING SETUP OF ENVIRONMENT SERVICES ..." | tee $LOGFILE
-    if [ $DHCP -ne 'OK' ]; then
+    if [ $DHCP != 'OK' ]; then
         echo -e "\nInstalling DHCP .." | tee $LOGFILE
         sudo yum -y remove dhcp-server >>$LOGFILE 2>&1
         sudo yum -y install dhcp-server >>$LOGFILE 2>&1
@@ -101,7 +101,7 @@ EOF
         echo -e "\nOK\n" >>$LOGFILE
         set_progress DHCP
     fi
-    if [ $TFTP_INSTALL -ne 'OK' ]; then
+    if [ $TFTP_INSTALL != 'OK' ]; then
         echo -e "\nInstalling TFTP Server .." | tee $LOGFILE
         sudo yum remove -y tftp-server syslinux >>$LOGFILE 2>&1
         sudo yum -y install tftp-server syslinux >>$LOGFILE 2>&1
@@ -127,14 +127,14 @@ EOF
     sudo cp -rvf /usr/share/syslinux/* /var/lib/tftpboot >>LOGFILE >>$LOGFILE 2>&1
     sudo mkdir -p /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
 
-    if [ $RHCOS_KERNEL -ne 'OK' ]; then
+    if [ $RHCOS_KERNEL != 'OK' ]; then
         echo -e "\nDownloading RHCOS Kernel and Installer Image. Please wait this might take some time .." | tee $LOGFILE
         wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-kernel-x86_64 >>$LOGFILE 2>&1
         on_error $? "Could not download kernel file. Check logs at $LOGFILE"
         sudo mv rhcos-installer-kernel-x86_64 /var/lib/tftpboot/rhcos/kernel >>$LOGFILE 2>&1
         set_progress RHCOS_KERNEL
     fi
-    if [ $RHCOS_INSTALLER -ne 'OK' ]; then
+    if [ $RHCOS_INSTALLER != 'OK' ]; then
         wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-initramfs.x86_64.img >>$LOGFILE 2>&1
         on_error $? "Could not download installer image. Check logs at $LOGFILE"
         sudo mv rhcos-installer-initramfs.x86_64.img /var/lib/tftpboot/rhcos/initramfs.img >>$LOGFILE 2>&1
@@ -145,7 +145,7 @@ EOF
     ls /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
     echo -e "\nOK\n" >>$LOGFILE
 
-    if [ $APACHE -ne 'OK' ]; then
+    if [ $APACHE != 'OK' ]; then
         echo -e "\nInstalling Apache .." | tee $LOGFILE
         sudo yum -y remove httpd >>$LOGFILE 2>&1
         sudo yum -y install httpd >>$LOGFILE 2>&1
@@ -155,7 +155,7 @@ EOF
         sudo firewall-cmd --add-port=8080/tcp --permanent >>$LOGFILE 2>&1
         sudo firewall-cmd --reload >>$LOGFILE 2>&1
         sudo mkdir -p /var/www/html/rhcos >>$LOGFILE 2>&1
-        if [ $RHCOS_ROOTFS -ne 'OK' ]; then
+        if [ $RHCOS_ROOTFS != 'OK' ]; then
             echo -e "\nDownloading Red HatCoreOSroofs image. This might take some time .." | tee $LOGFILE
             wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-live-rootfs.x86_64.img >>$LOGFILE 2>&1
             on_error $? "Could not download Red Hat CoreOSrootfs image. Check logs at $LOGFILE"
@@ -168,14 +168,14 @@ EOF
         echo -e "\nOK\n" >>$LOGFILE
         set_progress APACHE
     fi
-    if [ $TFTP_SETUP -ne 'OK' ]; then
+    if [ $TFTP_SETUP != 'OK' ]; then
         echo -e "\nConfiguring TFTP Server .." | tee $LOGFILE
         ansible-playbook tasks/configure_tftp_pxe.yml >>$LOGFILE 2>&1
         on_error $? "Issue Setting up TFTP Server. Check logs at $LOGFILE"
         echo -e "\nSuccessfully setup TFTP" | tee $LOGFILE
         set_progress TFTP_SETUP
     fi
-    if [ $HAPROXY -ne 'OK' ]; then
+    if [ $HAPROXY != 'OK' ]; then
         echo -e "\nInstalling HAProxy .." | tee $LOGFILE
         sudo yum remove -y haproxy >>$LOGFILE 2>&1
         sudo yum install -y haproxy >>$LOGFILE 2>&1
@@ -199,7 +199,7 @@ EOF
     fi
     echo -e "\nEnvironment Setup Successful" | tee $LOGFILE
 
-    if [ $OPENSHIFT_CLIENTS -ne 'OK' ]; then
+    if [ $OPENSHIFT_CLIENTS != 'OK' ]; then
         echo -e "\nDownloading openshift-install, client binaries and generating SSH Keys .." | tee $LOGFILE
         echo -e "\nDownloading openshift client binaries" >>$LOGFILE
         rm -f openshift-client-linux.tar.gz >>$LOGFILE 2>&1
@@ -214,7 +214,7 @@ EOF
         set_progress OPENSHIFT_CLIENTS
     fi
 
-    if [ $OCP_INSTALLER -ne "OK" ]; then
+    if [ $OCP_INSTALLER != "OK" ]; then
         echo -e "\nDownloading openshift install" | tee $LOGFILE
         rm -f openshift-install-linux.tar.gz >>$LOGFILE 2>&1
         wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux.tar.gz >>$LOGFILE 2>&1
@@ -227,7 +227,7 @@ EOF
         set_progress OCP_INSTALLER
     fi
 
-    if [ $OCP_FILES -ne "OK" ]; then
+    if [ $OCP_FILES != "OK" ]; then
         echo -e "Generating SSH Keys" | tee $LOGFILE
         ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa <<<y >>$LOGFILE 2>&1
         on_error $? "Could not generate SSH Keys. Check logs at $LOGFILE"
@@ -265,7 +265,7 @@ EOF
     for i in ${SERVICES[@]}; do
         systemctl enable $i >>$LOGFILE >>$LOGFILE 2>&1
         systemctl is-active --quiet $i >>$LOGFILE 2>&1
-        if [ "$?" -ne 0 ]; then
+        if [ "$?" != 0 ]; then
             systemctl restart $i >>$LOGFILE >>$LOGFILE 2>&1
             systemctl is-active --quiet $i >>$LOGFILE 2>&1
             on_error $? "$i is not running and is unable to restart. Check logs at $LOGFILE"
