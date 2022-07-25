@@ -75,6 +75,7 @@ if [ $CONFIGS != 'OK' ]; then
         UPPER_LIMIT="$((i1 & m1 | 255 - m1)).$((i2 & m2 | 255 - m2)).$((i3 & m3 | 255 - m3)).$(((i4 & m4 | 255 - m4) - 1))"
         on_error $? "Issue setting up config variables. Check logs at $LOGFILE\n"
         set_progress CONFIGS
+        set_progress RESUME
     fi
     #Check disk device if set else use /dev/sda
     [ -z $DEVICE ] && DEVICE=/dev/sda
