@@ -8,28 +8,28 @@ PROGRESS_FILE=$WORK_DIR/set_progress.sh
 LOGFILE=$WORK_DIR/update.log
 rm -f $LOGFILE && touch $LOGFILE
 
-#When script is re-run provide option to resume from last successful run block
-if [ $RESUME == 'OK' ]; then
-    while true; do
-        read -p "Resume setup from last exit? (y/n) " setup_resume
-        case $setup_resume in
-        [yY])
-            echo -e "\nResuming Setup .."
-            break
-            ;;
-        [nN])
-            echo -e "\nRestarting Setup .."
-            reset_progress
-            break
-            ;;
-        *) echo -e "invalid response" ;;
-        esac
-    done
-fi
-echo -e "Config file is at $CONFIG_FILE"
-#VALIDATE AND CONFIRM CONFIGS
-if [ $CONFIGS != 'OK' ]; then
-    if [[ -f /root/openshift-poc-setup/config.sh ]]; then
+if [[ -f $CONFIG_FILE ]]; then
+    #When script is re-run provide option to resume from last successful run block
+    if [ $RESUME == 'OK' ]; then
+        while true; do
+            read -p "Resume setup from last exit? (y/n) " setup_resume
+            case $setup_resume in
+            [yY])
+                echo -e "\nResuming Setup .."
+                break
+                ;;
+            [nN])
+                echo -e "\nRestarting Setup .."
+                reset_progress
+                break
+                ;;
+            *) echo -e "invalid response" ;;
+            esac
+        done
+    fi
+    echo -e "Config file is at $CONFIG_FILE"
+    #VALIDATE AND CONFIRM CONFIGS
+    if [ $CONFIGS != 'OK' ]; then
         echo -e "\nValidating Configuration File ...." | tee $LOGFILE
         source $CONFIG_FILE
         #Confirm required config file variables are not empty
