@@ -9,7 +9,7 @@ LOGFILE=$WORK_DIR/update.log
 rm -f $LOGFILE && touch $LOGFILE
 
 #VALIDATE AND CONFIRM CONFIGS
-if [ $CONFIGS -ne 'OK' ]; then
+if [ $CONFIGS -ne "OK" ]; then
     if [ -f "$CONFIG_FILE" ]; then
         echo -e "\nValidating Configuration File ...." | tee $LOGFILE
         source ${CONFIG}
