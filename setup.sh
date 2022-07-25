@@ -60,24 +60,25 @@ if [[ -f $CONFIG_FILE ]]; then
             [[ ${i} = *$mac_prefix ]] && valid_mac ${!i} ${i}
         done
         echo -e "\nSuccessfully validated Configuration File" | tee $LOGFILE
-
-        #Set additional variables
-        HELPER_IP=$(ip route get 8.8.8.8 | awk '{print $7}')
-        NETWORK_INTERFACE=$(ip route get 8.8.8.8 | awk '{print $5}')
-        GATEWAY=$(ip route get 8.8.8.8 | awk '{print $3}')
-        BROADCAST=$(ip addr show | grep -w inet | grep -v 127.0.0.1 | awk '{ print $4}' | head -n 1)
-        NETMASK=$(ifconfig | grep -w inet | grep -v 127.0.0.1 | awk '{print $4}' | cut -d ":" -f 2)
-        #Calculate Network ID
-        IFS=. read -r i1 i2 i3 i4 <<<"$HELPER_IP"
-        IFS=. read -r m1 m2 m3 m4 <<<"$NETMASK"
-        NET_ID="$((i1 & m1))"."$((i2 & m2))"."$((i3 & m3))"."$((i4 & m4))"
-        #Calculate ip range
-        LOWER_LIMIT="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4) + 1))"
-        UPPER_LIMIT="$((i1 & m1 | 255 - m1)).$((i2 & m2 | 255 - m2)).$((i3 & m3 | 255 - m3)).$(((i4 & m4 | 255 - m4) - 1))"
-        on_error $? "Issue setting up config variables. Check logs at $LOGFILE\n"
         set_progress CONFIGS
         set_progress RESUME
     fi
+
+    #Set additional variables
+    HELPER_IP=$(ip route get 8.8.8.8 | awk '{print $7}')
+    NETWORK_INTERFACE=$(ip route get 8.8.8.8 | awk '{print $5}')
+    GATEWAY=$(ip route get 8.8.8.8 | awk '{print $3}')
+    BROADCAST=$(ip addr show | grep -w inet | grep -v 127.0.0.1 | awk '{ print $4}' | head -n 1)
+    NETMASK=$(ifconfig | grep -w inet | grep -v 127.0.0.1 | awk '{print $4}' | cut -d ":" -f 2)
+    #Calculate Network ID
+    IFS=. read -r i1 i2 i3 i4 <<<"$HELPER_IP"
+    IFS=. read -r m1 m2 m3 m4 <<<"$NETMASK"
+    NET_ID="$((i1 & m1))"."$((i2 & m2))"."$((i3 & m3))"."$((i4 & m4))"
+    #Calculate ip range
+    LOWER_LIMIT="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4) + 1))"
+    UPPER_LIMIT="$((i1 & m1 | 255 - m1)).$((i2 & m2 | 255 - m2)).$((i3 & m3 | 255 - m3)).$(((i4 & m4 | 255 - m4) - 1))"
+    on_error $? "Issue setting up config variables. Check logs at $LOGFILE\n"
+    
     #Check disk device if set else use /dev/sda
     [ -z $DEVICE ] && DEVICE=/dev/sda
     #Generate variable file to be used by ansible playbooks
