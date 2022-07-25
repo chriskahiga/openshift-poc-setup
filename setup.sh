@@ -26,7 +26,7 @@ if [ $RESUME == 'OK' ]; then
         esac
     done
 fi
-echo "Doing stuff.."
+echo -e "Config file is at $CONFIG_FILE"
 #VALIDATE AND CONFIRM CONFIGS
 if [ $CONFIGS != 'OK' ]; then
     if [ -f "$CONFIG_FILE" ]; then
