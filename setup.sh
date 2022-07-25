@@ -12,7 +12,7 @@ rm -f $LOGFILE && touch $LOGFILE
 if [ $CONFIGS != 'OK' ]; then
     if [ -f "$CONFIG_FILE" ]; then
         echo -e "\nValidating Configuration File ...." | tee $LOGFILE
-        source ${CONFIG}
+        source $CONFIG
         #Confirm required config file variables are not empty
         ip_prefix='_IP'
         mac_prefix='_MAC_ADDRESS'
@@ -66,7 +66,7 @@ if [ $CONFIGS != 'OK' ]; then
 $(<vars/template.yml)
 EOF
 " >vars/main.yml
-    if [ $PRE_REQS != 'OK']; then
+    if [ $PRE_REQS != 'OK' ]; then
         #Checking pre-requisites
         echo -e "\nChecking pre-requisites ..." | tee $LOGFILE
         echo -e "\nConfirming OS Version .." | tee $LOGFILE
