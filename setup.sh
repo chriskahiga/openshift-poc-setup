@@ -83,7 +83,7 @@ if [ $CONFIGS != 'OK' ]; then
     #Generate variable file to be used by ansible playbooks
     cd ocp4_ansible/
     eval "cat << EOF
-$(vars/template.yml)
+$(<vars/template.yml)
 EOF
 " >vars/main.yml
     if [ $PRE_REQS != 'OK' ]; then
