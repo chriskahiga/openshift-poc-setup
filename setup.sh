@@ -8,6 +8,24 @@ PROGRESS_FILE=$WORK_DIR/set_progress.sh
 LOGFILE=$WORK_DIR/update.log
 rm -f $LOGFILE && touch $LOGFILE
 
+#When script is re-run provide option to resume from last successful run block
+if [ $RESUME == 'OK' ]; then
+    while true; do
+        read -p "Resume setup from last exit? (y/n)" setup_resume
+        case $setup_resume in
+        [yY])
+            echo -e "\nResuming Setup .."
+            break
+            ;;
+        [nN])
+            echo -e "\nRestarting Setup .."
+            reset_progress
+            break
+            ;;
+        *) echo -e "invalid response" ;;
+        esac
+    done
+fi
 #VALIDATE AND CONFIRM CONFIGS
 if [ $CONFIGS != 'OK' ]; then
     if [ -f "$CONFIG_FILE" ]; then
@@ -56,7 +74,7 @@ if [ $CONFIGS != 'OK' ]; then
         LOWER_LIMIT="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4) + 1))"
         UPPER_LIMIT="$((i1 & m1 | 255 - m1)).$((i2 & m2 | 255 - m2)).$((i3 & m3 | 255 - m3)).$(((i4 & m4 | 255 - m4) - 1))"
         on_error $? "Issue setting up config variables. Check logs at $LOGFILE\n"
-        set_progress CONFIG
+        set_progress CONFIGS
     fi
     #Check disk device if set else use /dev/sda
     [ -z $DEVICE ] && DEVICE=/dev/sda
