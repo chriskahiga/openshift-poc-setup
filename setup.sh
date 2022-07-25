@@ -29,7 +29,7 @@ fi
 echo -e "Config file is at $CONFIG_FILE"
 #VALIDATE AND CONFIRM CONFIGS
 if [ $CONFIGS != 'OK' ]; then
-    if [ -f "$CONFIG_FILE" ]; then
+    if [[ -f $CONFIG_FILE ]]; then
         echo -e "\nValidating Configuration File ...." | tee $LOGFILE
         source $CONFIG_FILE
         #Confirm required config file variables are not empty
