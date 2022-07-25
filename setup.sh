@@ -29,7 +29,7 @@ fi
 echo -e "Config file is at $CONFIG_FILE"
 #VALIDATE AND CONFIRM CONFIGS
 if [ $CONFIGS != 'OK' ]; then
-    if [[ -f $CONFIG_FILE ]]; then
+    if [[ -f /root/openshift-poc-setup/config.sh ]]; then
         echo -e "\nValidating Configuration File ...." | tee $LOGFILE
         source $CONFIG_FILE
         #Confirm required config file variables are not empty
@@ -295,5 +295,5 @@ EOF
     echo -e "\nENVIRONMENT SERVICES SETUP SUCCESSFUL\n" | tee $LOGFILE
     reset_progress
 else
-    echo "Cannot find config file. QUITING" >>$LOGFILE
+    echo "Cannot find config file. QUITING" | tee $LOGFILE
 fi
