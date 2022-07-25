@@ -78,7 +78,7 @@ if [[ -f $CONFIG_FILE ]]; then
     LOWER_LIMIT="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4) + 1))"
     UPPER_LIMIT="$((i1 & m1 | 255 - m1)).$((i2 & m2 | 255 - m2)).$((i3 & m3 | 255 - m3)).$(((i4 & m4 | 255 - m4) - 1))"
     on_error $? "Issue setting up config variables. Check logs at $LOGFILE\n"
-    
+
     #Check disk device if set else use /dev/sda
     [ -z $DEVICE ] && DEVICE=/dev/sda
     #Generate variable file to be used by ansible playbooks
@@ -104,9 +104,10 @@ EOF
         echo -e "\nOK\n" >>$LOGFILE
         set_progress PRE_REQS
     fi
+
     #Begin environment setup
-    echo -e "\nSTARTING SETUP OF ENVIRONMENT SERVICES ..." | tee $LOGFILE
     if [ $DHCP != 'OK' ]; then
+        echo -e "\nSTARTING SETUP OF ENVIRONMENT SERVICES ..." | tee $LOGFILE
         echo -e "\nInstalling DHCP .." | tee $LOGFILE
         sudo yum -y remove dhcp-server >>$LOGFILE 2>&1
         sudo yum -y install dhcp-server >>$LOGFILE 2>&1
@@ -180,7 +181,7 @@ EOF
             echo -e "\nDownloading Red HatCoreOSroofs image. This might take some time .." | tee $LOGFILE
             wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-live-rootfs.x86_64.img >>$LOGFILE 2>&1
             on_error $? "Could not download Red Hat CoreOSrootfs image. Check logs at $LOGFILE"
-            echo -e "\nRed Hat CoreOSrootfs image donwloaded" | tee $LOGFILE
+            echo -e "\nRed Hat CoreOSrootfs image downloaded" | tee $LOGFILE
             sudo mv rhcos-live-rootfs.x86_64.img /var/www/html/rhcos/rootfs.img >>$LOGFILE 2>&1
             sudo restorecon -RFv /var/www/html/rhcos >>$LOGFILE 2>&1
             set_progress RHCOS_ROOTFS

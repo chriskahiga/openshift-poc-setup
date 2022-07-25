@@ -51,7 +51,7 @@ set_progress() {
 }
 reset_progress() {
     echo 'CONFIGS=0
-DHCPD=0
+DHCP=0
 TFTP_INSTALL=0
 TFTP_SETUP=0
 HAPROXY=0
