@@ -7,6 +7,13 @@ source $WORK_DIR/set_progress.sh
 PROGRESS_FILE=$WORK_DIR/set_progress.sh
 LOGFILE=$WORK_DIR/update.log
 
+#yq is required
+if ! [ -x "$(command -v yq)" ]; then
+    YQ_VERSION=
+    YQ_BINARY=
+    wget https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_arm.tar.gz -O - | tar xz && mv yq_linux_arm /usr/bin/yq
+fi
+
 if [[ -f $CONFIG_FILE ]]; then
     #When script is re-run provide option to resume from last successful run block
     if [ $RESUME == 'OK' ]; then
@@ -179,7 +186,7 @@ EOF
         sudo mkdir -p /var/www/html/rhcos >>$LOGFILE 2>&1
         if [ $RHCOS_ROOTFS != 'OK' ]; then
             echo -e "\nDownloading Red HatCoreOSroofs image. This might take some time .." | tee $LOGFILE
-            wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-live-rootfs.x86_64.img >>$LOGFILE 2>&1
+            wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.10/latest/rhcos-live-rootfs.x86_64.img >>$LOGFILE 2>&1
             on_error $? "Could not download Red Hat CoreOSrootfs image. Check logs at $LOGFILE"
             echo -e "\nRed Hat CoreOSrootfs image downloaded" | tee $LOGFILE
             sudo mv rhcos-live-rootfs.x86_64.img /var/www/html/rhcos/rootfs.img >>$LOGFILE 2>&1
@@ -225,7 +232,7 @@ EOF
         echo -e "\nDownloading openshift-install, client binaries and generating SSH Keys .." | tee $LOGFILE
         echo -e "\nDownloading openshift client binaries" >>$LOGFILE
         rm -f openshift-client-linux.tar.gz >>$LOGFILE 2>&1
-        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz >>$LOGFILE 2>&1
+        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-client-linux.tar.gz >>$LOGFILE 2>&1
         on_error $? "Could not download openshift client binaries. Check logs at $LOGFILE"
         tar xvf openshift-client-linux.tar.gz >>$LOGFILE 2>&1
         sudo rm -f /usr/local/bin/oc && sudo rm -f /usr/local/bin/kubectl >>$LOGFILE 2>&1
@@ -239,7 +246,7 @@ EOF
     if [ $OCP_INSTALLER != "OK" ]; then
         echo -e "\nDownloading openshift install" | tee $LOGFILE
         rm -f openshift-install-linux.tar.gz >>$LOGFILE 2>&1
-        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux.tar.gz >>$LOGFILE 2>&1
+        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-install-linux.tar.gz >>$LOGFILE 2>&1
         on_error $? "Could not download openshift-nstall. Check logs at $LOGFILE"
         tar xvf openshift-install-linux.tar.gz >>$LOGFILE 2>&1
         sudo rm -f /usr/local/bin/openshift-install >>$LOGFILE 2>&1
