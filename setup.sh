@@ -11,7 +11,7 @@ rm -f $LOGFILE && touch $LOGFILE
 #When script is re-run provide option to resume from last successful run block
 if [ $RESUME == 'OK' ]; then
     while true; do
-        read -p "Resume setup from last exit? (y/n)" setup_resume
+        read -p "Resume setup from last exit? (y/n) " setup_resume
         case $setup_resume in
         [yY])
             echo -e "\nResuming Setup .."
