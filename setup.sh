@@ -10,10 +10,7 @@ LOGFILE=$WORK_DIR/update.log
 #yq is required
 if ! [ -x "$(command -v yq)" ]; then
     echo -e "\nDownloading Yq"
-    wget https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_arm >>$LOGFILE 2>&1
-    on_error $? "\nyq needs to be installed before running this script\n"
-    mv yq_linux_arm /usr/bin/yq
-    chmod +x /usr/bin/yq
+    wget https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_arm.tar.gz >>$LOGFILE 2>&1 -O - | tar xz && mv yq_linux_arm /usr/bin/yq
     on_error $? "\nyq needs to be installed before running this script\n"
 fi
 
