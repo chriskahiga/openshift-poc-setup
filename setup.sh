@@ -12,7 +12,7 @@ rm -f $LOGFILE && touch $LOGFILE
 if [ $CONFIGS != 'OK' ]; then
     if [ -f "$CONFIG_FILE" ]; then
         echo -e "\nValidating Configuration File ...." | tee $LOGFILE
-        source $CONFIG
+        source $CONFIG_FILE
         #Confirm required config file variables are not empty
         ip_prefix='_IP'
         mac_prefix='_MAC_ADDRESS'
