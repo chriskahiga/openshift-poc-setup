@@ -6,7 +6,6 @@ source $WORK_DIR/helper.sh
 source $WORK_DIR/set_progress.sh
 PROGRESS_FILE=$WORK_DIR/set_progress.sh
 LOGFILE=$WORK_DIR/update.log
-rm -f $LOGFILE && touch $LOGFILE
 
 if [[ -f $CONFIG_FILE ]]; then
     #When script is re-run provide option to resume from last successful run block
@@ -27,7 +26,7 @@ if [[ -f $CONFIG_FILE ]]; then
             esac
         done
     fi
-    echo -e "Config file is at $CONFIG_FILE"
+
     #VALIDATE AND CONFIRM CONFIGS
     if [ $CONFIGS != 'OK' ]; then
         echo -e "\nValidating Configuration File ...." | tee $LOGFILE
