@@ -116,11 +116,11 @@ EOF
         [[ $VERSION == 8* ]] && echo -e "\nSuccessfully Confirmed OS Version" || on_error 1 "\nPlease run this setup on Red Hat Linux version 8.*.EXITING\n"
         echo -e "\nConfirming Forward and Reverse DNS Resolution" | tee $LOGFILE
         #For masters and workers
-        for ((c = 1; c <= $MASTERS; c++)); do
+        for ((i = 1; i <= $MASTERS; i++)); do
             dns_resolve master0$i.ocp4.$BASE_DOMAIN_NAME
         done
         if [ $WORKERS != 0 ]; then
-            for ((c = 1; c <= $WORKERS; c++)); do
+            for ((i = 1; i <= $WORKERS; i++)); do
                 dns_resolve worker0$i.ocp4.$BASE_DOMAIN_NAME
             done
         fi
