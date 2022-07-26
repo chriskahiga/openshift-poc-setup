@@ -117,17 +117,20 @@ EOF
         echo -e "\nConfirming Forward and Reverse DNS Resolution" | tee $LOGFILE
         #For masters and workers
         for ((i = 1; i <= $MASTERS; i++)); do
-            dns_resolve master0$i.ocp4.$BASE_DOMAIN_NAME
+            dns_resolve master0$i.ocp4.$BASE_DOMAIN_NAME MASTER_0$i"_IP"
         done
         if [ $WORKERS != 0 ]; then
             for ((i = 1; i <= $WORKERS; i++)); do
-                dns_resolve worker0$i.ocp4.$BASE_DOMAIN_NAME
+                dns_resolve worker0$i.ocp4.$BASE_DOMAIN_NAME WORKER_0$i"_IP"
             done
         fi
         #For bootstrap, api, api-int and apps
         RECORDS=(bootstrap.ocp4.$BASE_DOMAIN_NAME api-int.ocp4.$BASE_DOMAIN_NAME api.ocp4.$BASE_DOMAIN_NAME *.apps.ocp4.$BASE_DOMAIN_NAME)
         for i in ${RECORDS[@]}; do
-            dns_resolve $i
+            case $i in
+            bootstrap.ocp4.$BASE_DOMAIN_NAME) dns_resolve $i $BOOTSTRAP_IP ;;
+            *) dns_resolve $i $HELPER_IP ;;
+            esac
         done
         echo -e "\nSuccessfully Confirmed DNS requirements" | tee $LOGFILE
         echo -e "\nOK\n" >>$LOGFILE
