@@ -1,5 +1,5 @@
 WORK_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-source $WORK_DIR/config.sh
+source $WORK_DIR/setup.conf
 PROGRESS_FILE=$WORK_DIR/set_progress.sh
 
 is_variable_empty() {
