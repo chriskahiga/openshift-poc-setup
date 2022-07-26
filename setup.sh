@@ -1,6 +1,6 @@
 #! /bin/bash
 WORK_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
-CONFIG_FILE=$WORK_DIR/config.sh
+CONFIG_FILE=$WORK_DIR/setup.conf
 source $WORK_DIR/error_handler.sh
 source $WORK_DIR/helper.sh
 source $WORK_DIR/set_progress.sh
@@ -10,7 +10,7 @@ LOGFILE=$WORK_DIR/update.log
 #yq is required
 if ! [ -x "$(command -v yq)" ]; then
     echo -e "\nDownloading Yq"
-    wget https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_amd64.tar.gz 2>/dev/null -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+    wget https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_amd64.tar.gz -O - 2>/dev/null | tar xz && mv yq_linux_amd64 /usr/bin/yq
     on_error $? "\nERROR: yq needs to be installed before running this script\n"
 fi
 
@@ -49,7 +49,8 @@ if [[ -f $CONFIG_FILE ]]; then
             [[ ${i} = *$mac_prefix ]] && valid_mac ${!i} ${i}
             let num=num+1
         done
-        [ $num -lt 6 ] && { on_error 1 "Ensure at least 3 master ips and their respective mac addresses are defined"; }
+        [ $num -lt 2 ] && { on_error 1 "Ensure at least 1 master ip and their respective mac address are defined"; }
+        # [ $num -lt 6 ] && { on_error 1 "Ensure at least 3 master ips and their respective mac addresses are defined"; }
         let num=0
         for i in ${!WORKER_*}; do
             is_variable_empty ${!i}
@@ -103,7 +104,7 @@ EOF
         [ -z "$VERSION" ] && {on_error 1 "Could not confirm OS Version"}
         [[ $VERSION == 8* ]] && echo -e "\nSuccessfully Confirmed OS Version" || on_error 1 "Please run this setup on Red Hat Linux version 8.*.EXITING\n"
         echo -e "\nConfirming Forward and Reverse DNS Resolution" | tee $LOGFILE
-        RECORDS=(bootstrap.ocp4.$BASE_DOMAIN_NAME master01.ocp4.$BASE_DOMAIN_NAME master02.ocp4.$BASE_DOMAIN_NAME master01.ocp4.$BASE_DOMAIN_NAME worker01.ocp4.$BASE_DOMAIN_NAME worker02.ocp4.$BASE_DOMAIN_NAME)
+        RECORDS=(bootstrap.ocp4.$BASE_DOMAIN_NAME master01.ocp4.$BASE_DOMAIN_NAME api-int.ocp4.$BASE_DOMAIN_NAME api.ocp4.$BASE_DOMAIN_NAME *.apps.ocp4.$BASE_DOMAIN_NAME)
         for i in ${RECORDS[@]}; do
             dns_resolve $i
         done
