@@ -51,12 +51,23 @@ if [[ -f $CONFIG_FILE ]]; then
         done
         [ $num -lt 2 ] && { on_error 1 "Ensure at least 1 master ip and their respective mac address are defined"; }
         # [ $num -lt 6 ] && { on_error 1 "Ensure at least 3 master ips and their respective mac addresses are defined"; }
+        [ $(expr $num % 2) != 0 ] && { on_error 1 "Ensure all masters specified in the config file include their ip and mac addresses"; }
+        let num=num/2
+        sed -i "s/MASTERS=0/MASTERS=$num/g" $WORK_DIR/set_progress.sh
+        source $WORK_DIR/set_progress.sh
         let num=0
         for i in ${!WORKER_*}; do
             is_variable_empty ${!i}
             [[ ${i} = *$ip_prefix ]] && valid_ip ${!i} ${i}
             [[ ${i} = *$mac_prefix ]] && valid_mac ${!i} ${i}
+            let num=num+1
         done
+        if [ $num != 0 ]; then
+            [ $(expr $num % 2) != 0 ] && { on_error 1 "Ensure all workers specified in the config file include their ip and mac addresses"; }
+            let num=num/2
+            sed -i "s/WORKERS=0/WORKERS=$num/g" $WORK_DIR/set_progress.sh
+            source $WORK_DIR/set_progress.sh
+        fi
         declare -A OTHERS
         OTHERS[BOOTSTRAP_IP]=$BOOTSTRAP_IP
         OTHERS[BOOTSTRAP_MAC_ADDRESS]=$BOOTSTRAP_MAC_ADDRESS
@@ -102,9 +113,19 @@ EOF
         source /etc/os-release >>$LOGFILE 2>&1
         on_error $? "Could not confirm OS version. Check logs at $LOGFILE\n"
         [ -z "$VERSION" ] && {on_error 1 "Could not confirm OS Version"}
-        [[ $VERSION == 8* ]] && echo -e "\nSuccessfully Confirmed OS Version" || on_error 1 "Please run this setup on Red Hat Linux version 8.*.EXITING\n"
+        [[ $VERSION == 8* ]] && echo -e "\nSuccessfully Confirmed OS Version" || on_error 1 "\nPlease run this setup on Red Hat Linux version 8.*.EXITING\n"
         echo -e "\nConfirming Forward and Reverse DNS Resolution" | tee $LOGFILE
-        RECORDS=(bootstrap.ocp4.$BASE_DOMAIN_NAME master01.ocp4.$BASE_DOMAIN_NAME api-int.ocp4.$BASE_DOMAIN_NAME api.ocp4.$BASE_DOMAIN_NAME *.apps.ocp4.$BASE_DOMAIN_NAME)
+        #For masters and workers
+        for ((c = 1; c <= $MASTERS; c++)); do
+            dns_resolve master0$i.ocp4.$BASE_DOMAIN_NAME
+        done
+        if [ $WORKERS != 0 ]; then
+            for ((c = 1; c <= $WORKERS; c++)); do
+                dns_resolve worker0$i.ocp4.$BASE_DOMAIN_NAME
+            done
+        fi
+        #For bootstrap, api, api-int and apps
+        RECORDS=(bootstrap.ocp4.$BASE_DOMAIN_NAME api-int.ocp4.$BASE_DOMAIN_NAME api.ocp4.$BASE_DOMAIN_NAME *.apps.ocp4.$BASE_DOMAIN_NAME)
         for i in ${RECORDS[@]}; do
             dns_resolve $i
         done
