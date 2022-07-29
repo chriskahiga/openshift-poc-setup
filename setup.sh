@@ -118,7 +118,7 @@ if [[ -f $CONFIG_FILE ]]; then
             on_error $? "Issue adding generating variable yaml file"
         done
     fi
-    yq -i '.ppc64le = false .uefi = false' $WORK_DIR/ocp4_ansible/vars/template.yml
+    yq -i '.ppc64le = false, .uefi = false' $WORK_DIR/ocp4_ansible/vars/template.yml
 
     cd $WORK_DIR/ocp4_ansible/
     eval "cat << EOF
