@@ -44,9 +44,16 @@ if [[ -f $CONFIG_FILE ]]; then
         mac_prefix='_MAC_ADDRESS'
         num=0
         for i in ${!MASTER_*}; do
+            master_ip=''
+            master_mac=''
             is_variable_empty ${!i}
-            [[ ${i} = *$ip_prefix ]] && valid_ip ${!i} ${i}
-            [[ ${i} = *$mac_prefix ]] && valid_mac ${!i} ${i}
+            if [[ ${i} = *$ip_prefix ]]; then
+                valid_ip ${!i} ${i}
+                master_ip=${i}
+            fi
+            if [[ ${i} = *$mac_prefix ]]; then
+                valid_mac ${!i} ${i}
+            fi
             let num=num+1
         done
         [ $num -lt 2 ] && { on_error 1 "Ensure at least 1 master ip and their respective mac address are defined"; }
@@ -100,8 +107,19 @@ if [[ -f $CONFIG_FILE ]]; then
 
     #Check disk device if set else use /dev/sda
     [ -z $DEVICE ] && DEVICE=/dev/sda
-    #Generate variable file to be used by ansible playbooks
-    cd ocp4_ansible/
+    #Generate variable yaml file to be used by ansible playbooks
+    for ((i = 1; i <= $MASTERS; i++)); do
+        num=$i yq -i '.masters += [{"name": "master0${num}", "ipaddr": "$MASTER_0${num}_IP", "macaddr": "$MASTER_0${num}_MAC_ADDRESS"}] | .. style="double"' $WORK_DIR/ocp4_ansible/template.yml | tee $LOGFILE
+        on_error $? "Issue adding generating variable yaml file"
+    done
+    if [[ $WORKERS != 0 ]]; then
+        for ((i = 1; i <= $MASTERS; i++)); do
+            num=$i yq -i '.workers += [{"name": "worker0${num}", "ipaddr": "$WORKER_0${num}_IP", "macaddr": "$WORKER_0${num}_MAC_ADDRESS"}] | .. style="double"' $WORK_DIR/ocp4_ansible/template.yml | tee $LOGFILE
+            on_error $? "Issue adding generating variable yaml file"
+        done
+    fi
+
+    cd $WORK_DIR/ocp4_ansible/
     eval "cat << EOF
 $(<vars/template.yml)
 EOF
