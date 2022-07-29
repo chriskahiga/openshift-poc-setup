@@ -25,7 +25,5 @@ dhcp:
 bootstrap:
   name: "bootstrap"                        #hostname (WITHOUT the fqdn) of the bootstrap node 
   ipaddr: "$BOOTSTRAP_IP"                 #IP address that you want set for bootstrap node
-  macaddr: "$BOOTSTRAP_MAC_ADDRESS"             #The mac address for dhcp reservation
-masters:
-workers:
+  macaddr: "$BOOTSTRAP_MAC_ADDRESS"
 #end
