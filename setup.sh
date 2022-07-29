@@ -109,12 +109,12 @@ if [[ -f $CONFIG_FILE ]]; then
     [ -z $DEVICE ] && DEVICE=/dev/sda
     #Generate variable yaml file to be used by ansible playbooks
     for ((i = 1; i <= $MASTERS; i++)); do
-        num=$i yq -i '.masters += [{"name": "master0${num}" | envsubst, "ipaddr": "$MASTER_0${num}_IP" | envsubst, "macaddr": "$MASTER_0${num}_MAC_ADDRESS"} | envsubst] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee $LOGFILE
+        num=$i prefix='$MASTER_0' yq -i '.masters += [{"name": "master0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}${num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee $LOGFILE
         on_error $? "Issue adding generating variable yaml file"
     done
     if [[ $WORKERS != 0 ]]; then
         for ((i = 1; i <= $MASTERS; i++)); do
-            num=$i yq -i '.workers += [{"name": "worker0${num}" | envsubst, "ipaddr": "$WORKER_0${num}_IP" | envsubst, "macaddr": "$WORKER_0${num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee $LOGFILE
+            num=$i prefix='WORKER_0' yq -i '.workers += [{"name": "worker0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}{num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee $LOGFILE
             on_error $? "Issue adding generating variable yaml file"
         done
     fi
