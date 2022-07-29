@@ -27,20 +27,5 @@ bootstrap:
   ipaddr: "$BOOTSTRAP_IP"                 #IP address that you want set for bootstrap node
   macaddr: "$BOOTSTRAP_MAC_ADDRESS"             #The mac address for dhcp reservation
 masters:
-  - name: "master01"                       #hostname (WITHOUT the fqdn) of the master node (x of 3)
-    ipaddr: "$MASTER_01_IP"               #The IP address (x of 3) that you want set
-    macaddr: "$MASTER_01_MAC_ADDRESS"           #The mac address for dhcp reservation
-  - name: "master02"
-    ipaddr: "$MASTER_02_IP"
-    macaddr: "$MASTER_02_MAC_ADDRESS"
-  - name: "master03"
-    ipaddr: "$MASTER_03_IP"
-    macaddr: "$MASTER_03_MAC_ADDRESS"
 workers:
-  - name: "worker01"                       #hostname (WITHOUT the fqdn) of the worker node you want to set
-    ipaddr: "$WORKER_01_IP"               #The IP address that you want set (1st node)
-    macaddr: "$WORKER_01_MAC_ADDRESS"           #The mac address for dhcp reservation (1st node)
-  - name: "worker02"
-    ipaddr: "$WORKER_02_IP"
-    macaddr: "$WORKER_02_MAC_ADDRESS"
 #end
