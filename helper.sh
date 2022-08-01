@@ -39,11 +39,11 @@ dns_resolve() {
     #forward resolution
     RESULT=$(dig @${DNS} +short $RECORD)
     [ $? != 0 ] && {
-        on_error 1 "\nUnable to resolve $RECORD. Please add $RECORD to DNS server $DNS and its associated IP or check if the DNS server is configured on this server by running\n\ncat /etc/resolv.conf\n"
+        on_error 1 "\nUnable to resolve $RECORD. Please add $RECORD to DNS server $DNS and its associated IP or check if the correct IP of your DNS Server is configured on this server by running\n\ncat /etc/resolv.conf\n"
     }
     REVERSE=$(dig @${DNS} +short $RECORD)
     [ $? != 0 ] && {
-        on_error 1 "\nUnable to perform reverse dns resolution on $RECORD. Please add the associated PTR Record on DNS server $DNS or check if the DNS server is configured on this server by running\n\ncat /etc/resolv.conf\n"
+        on_error 1 "\nUnable to perform reverse dns resolution on $RECORD. Please add the associated PTR Record on DNS server $DNS or check if the correct IP of your DNS Server is configured on this server by running\n\ncat /etc/resolv.conf\n"
     }
 }
 set_progress() {
