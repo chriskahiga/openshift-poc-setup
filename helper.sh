@@ -4,7 +4,7 @@ PROGRESS_FILE=$WORK_DIR/set_progress.sh
 
 is_variable_empty() {
     [ -z "$1" ] && {
-        on_error 1 "$i is not set. Ensure all required values are provided in the config.sh file before proceeding with setup"
+        on_error 1 "$i is not set. Ensure all required values are provided in the setup.conf file before proceeding with setup"
     }
 }
 valid_ip() {
@@ -38,11 +38,11 @@ dns_resolve() {
     RECORD=$1
     #forward resolution
     RESULT=$(dig @${DNS} +short $RECORD)
-    [ -z "$RESULT" ] && {
-        on_error 1 "\nUnable to resolve $RECORD. Please add $RECORD DNS server $DNS and its associated IP or check if the DNS server is configured on this server by running\n\ncat /etc/resolv.conf\n"
+    [ $? != 0 ] && {
+        on_error 1 "\nUnable to resolve $RECORD. Please add $RECORD to DNS server $DNS and its associated IP or check if the DNS server is configured on this server by running\n\ncat /etc/resolv.conf\n"
     }
     REVERSE=$(dig @${DNS} +short $RECORD)
-    [ -z "$REVERSE" ] && {
+    [ $? != 0 ] && {
         on_error 1 "\nUnable to perform reverse dns resolution on $RECORD. Please add the associated PTR Record on DNS server $DNS or check if the DNS server is configured on this server by running\n\ncat /etc/resolv.conf\n"
     }
 }
