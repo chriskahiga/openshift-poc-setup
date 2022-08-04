@@ -334,11 +334,12 @@ EOF
 $(<files/install-config-base.yaml)
 EOF
 " >~/ocp4/install-config.yaml
+        yes | cp ~/ocp4/install-config.yaml install-config-copy.yaml >>$LOGFILE 2>&1
         echo -e "Creating Manifest Files" | tee -a $LOGFILE
         openshift-install --dir ~/ocp4 create manifests >>$LOGFILE 2>&1
         on_error $? "\nUnable to create manifest files. Check logs at $LOGFILE" | tee -a $LOGFILE
         # Disabling pod scheduling on masters >>$LOGFILE 2>&1
-        [ $ENABLE_MASTER_SCHEDULING == 1 ] && { sed -i 's/true/false/' ~/ocp4/manifests/cluster-scheduler-02-config.yml >>$LOGFILE 2>&1; }
+        [[ $ENABLE_MASTER_SCHEDULING == 1 ]] && { sed -i 's/true/false/' ~/ocp4/manifests/cluster-scheduler-02-config.yml >>$LOGFILE 2>&1; }
         echo -e "Creating Ignition Files" | tee -a $LOGFILE
         openshift-install --dir ~/ocp4 create ignition-configs >>$LOGFILE 2>&1
         on_error $? "Unable to create ignition files. Check logs at $LOGFILE"
