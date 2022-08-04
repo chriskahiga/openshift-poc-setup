@@ -37,7 +37,7 @@ if [[ -f $CONFIG_FILE ]]; then
 
     #VALIDATE AND CONFIRM CONFIGS
     if [ $CONFIGS != 'OK' ]; then
-        echo -e "\nValidating Configuration File ...." | tee $LOGFILE
+        echo -e "\nValidating Configuration File ...." | tee -a $LOGFILE
         source $CONFIG_FILE
         #Confirm required config file variables are not empty
         ip_prefix='_IP'
@@ -85,7 +85,7 @@ if [[ -f $CONFIG_FILE ]]; then
             [[ ${i} = *$ip_prefix ]] && valid_ip ${!i} ${i}
             [[ ${i} = *$mac_prefix ]] && valid_mac ${!i} ${i}
         done
-        echo -e "\nSuccessfully validated Configuration File" | tee $LOGFILE
+        echo -e "\nSuccessfully validated Configuration File" | tee -a $LOGFILE
         set_progress CONFIGS
         set_progress RESUME
     fi
@@ -109,12 +109,12 @@ if [[ -f $CONFIG_FILE ]]; then
     [ -z $DEVICE ] && DEVICE=/dev/sda
     #Generate variable yaml file to be used by ansible playbooks
     for ((i = 1; i <= $MASTERS; i++)); do
-        num=$i prefix='$MASTER_0' yq -i '.masters += [{"name": "master0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}${num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee $LOGFILE
+        num=$i prefix='$MASTER_0' yq -i '.masters += [{"name": "master0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}${num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee -a $LOGFILE
         on_error $? "Issue adding generating variable yaml file"
     done
     if [[ $WORKERS != 0 ]]; then
         for ((i = 1; i <= $MASTERS; i++)); do
-            num=$i prefix='WORKER_0' yq -i '.workers += [{"name": "worker0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}{num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee $LOGFILE
+            num=$i prefix='WORKER_0' yq -i '.workers += [{"name": "worker0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}{num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee -a $LOGFILE
             on_error $? "Issue adding generating variable yaml file"
         done
     fi
@@ -127,13 +127,21 @@ EOF
 " >vars/main.yml
     if [ $PRE_REQS != 'OK' ]; then
         #Checking pre-requisites
-        echo -e "\nChecking pre-requisites ..." | tee $LOGFILE
-        echo -e "\nConfirming OS Version .." | tee $LOGFILE
+        echo -e "\nChecking pre-requisites ..." | tee -a $LOGFILE
+        echo -e "\nConfirming OS Version .." | tee -a $LOGFILE
         source /etc/os-release >>$LOGFILE 2>&1
         on_error $? "Could not confirm OS version. Check logs at $LOGFILE\n"
         [ -z "$VERSION" ] && {on_error 1 "Could not confirm OS Version"}
         [[ $VERSION == 8* ]] && echo -e "\nSuccessfully Confirmed OS Version" || on_error 1 "\nPlease run this setup on Red Hat Linux version 8.*.EXITING\n"
-        echo -e "\nConfirming Forward and Reverse DNS Resolution" | tee $LOGFILE
+
+        if [ $SETUP_DNS == 1 ]; then
+            echo -e "\nSetting up DNS .." | tee -a $LOGFILE
+            ansible-playbook tasks/configure_bind_dns.yml >>$LOGFILE 2>&1
+            on_error $? "Issue setting up DNS. Check logs at $LOGFILE"
+            echo -e "\nSuccessfully setup DNS" | tee -a $LOGFILE
+            echo -e "\nOK\n" >>$LOGFILE
+        fi
+        echo -e "\nConfirming Forward and Reverse DNS Resolution" | tee -a $LOGFILE
         #For masters and workers
         for ((i = 1; i <= $MASTERS; i++)); do
             dns_resolve master0$i.ocp4.$BASE_DOMAIN_NAME MASTER_0$i"_IP"
@@ -151,15 +159,15 @@ EOF
             *) dns_resolve $i $HELPER_IP ;;
             esac
         done
-        echo -e "\nSuccessfully Confirmed DNS requirements" | tee $LOGFILE
+        echo -e "\nSuccessfully Confirmed DNS requirements" | tee -a $LOGFILE
         echo -e "\nOK\n" >>$LOGFILE
         set_progress PRE_REQS
     fi
 
     #Begin environment setup
     if [ $DHCP != 'OK' ]; then
-        echo -e "\nSTARTING SETUP OF ENVIRONMENT SERVICES ..." | tee $LOGFILE
-        echo -e "\nInstalling DHCP .." | tee $LOGFILE
+        echo -e "\nSTARTING SETUP OF ENVIRONMENT SERVICES ..." | tee -a $LOGFILE
+        echo -e "\nInstalling DHCP .." | tee -a $LOGFILE
         sudo yum -y remove dhcp-server >>$LOGFILE 2>&1
         sudo yum -y install dhcp-server >>$LOGFILE 2>&1
         sudo systemctl enable dhcpd >>$LOGFILE 2>&1
@@ -167,15 +175,15 @@ EOF
         on_error $? "Issue installing dhcpd package. Check logs at $LOGFILE"
         echo -e "\nOK\n" >>$LOGFILE
 
-        echo -e "\nSetting up DHCP .." | tee $LOGFILE
+        echo -e "\nSetting up DHCP .." | tee -a $LOGFILE
         ansible-playbook tasks/configure_dhcpd.yml >>$LOGFILE 2>&1
         on_error $? "Issue setting up DHCP. Check logs at $LOGFILE"
-        echo -e "\nSuccessfully installed DHCP" | tee $LOGFILE
+        echo -e "\nSuccessfully installed DHCP" | tee -a $LOGFILE
         echo -e "\nOK\n" >>$LOGFILE
         set_progress DHCP
     fi
     if [ $TFTP_INSTALL != 'OK' ]; then
-        echo -e "\nInstalling TFTP Server .." | tee $LOGFILE
+        echo -e "\nInstalling TFTP Server .." | tee -a $LOGFILE
         sudo yum remove -y tftp-server syslinux >>$LOGFILE 2>&1
         sudo yum -y install tftp-server syslinux >>$LOGFILE 2>&1
         sudo firewall-cmd --add-service=tftp --permanent >>$LOGFILE 2>&1
@@ -191,7 +199,7 @@ EOF
         sudo systemctl daemon-reload >>$LOGFILE 2>&1
         sudo systemctl enable --now tftp helper-tftp >>$LOGFILE 2>&1
         on_error $? "Issue installing TFTP. Check logs at $LOGFILE"
-        echo -e "\nSuccessfully installed TFTP" | tee $LOGFILE
+        echo -e "\nSuccessfully installed TFTP" | tee -a $LOGFILE
         echo -e "\nOK\n" >>$LOGFILE
         set_progress TFTP_INSTALL
     fi
@@ -201,7 +209,7 @@ EOF
     sudo mkdir -p /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
 
     if [ $RHCOS_KERNEL != 'OK' ]; then
-        echo -e "\nDownloading RHCOS Kernel and Installer Image. Please wait this might take some time .." | tee $LOGFILE
+        echo -e "\nDownloading RHCOS Kernel and Installer Image. Please wait this might take some time .." | tee -a $LOGFILE
         wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-kernel-x86_64 >>$LOGFILE 2>&1
         on_error $? "Could not download kernel file. Check logs at $LOGFILE"
         sudo mv rhcos-installer-kernel-x86_64 /var/lib/tftpboot/rhcos/kernel >>$LOGFILE 2>&1
@@ -219,7 +227,7 @@ EOF
     echo -e "\nOK\n" >>$LOGFILE
 
     if [ $APACHE != 'OK' ]; then
-        echo -e "\nInstalling Apache .." | tee $LOGFILE
+        echo -e "\nInstalling Apache .." | tee -a $LOGFILE
         sudo yum -y remove httpd >>$LOGFILE 2>&1
         sudo yum -y install httpd >>$LOGFILE 2>&1
         on_error $? "Could not install Apache. Check logs at $LOGFILE"
@@ -229,34 +237,34 @@ EOF
         sudo firewall-cmd --reload >>$LOGFILE 2>&1
         sudo mkdir -p /var/www/html/rhcos >>$LOGFILE 2>&1
         if [ $RHCOS_ROOTFS != 'OK' ]; then
-            echo -e "\nDownloading Red HatCoreOSroofs image. This might take some time .." | tee $LOGFILE
+            echo -e "\nDownloading Red HatCoreOSroofs image. This might take some time .." | tee -a $LOGFILE
             wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.10/latest/rhcos-live-rootfs.x86_64.img >>$LOGFILE 2>&1
             on_error $? "Could not download Red Hat CoreOSrootfs image. Check logs at $LOGFILE"
-            echo -e "\nRed Hat CoreOSrootfs image downloaded" | tee $LOGFILE
+            echo -e "\nRed Hat CoreOSrootfs image downloaded" | tee -a $LOGFILE
             sudo mv rhcos-live-rootfs.x86_64.img /var/www/html/rhcos/rootfs.img >>$LOGFILE 2>&1
             sudo restorecon -RFv /var/www/html/rhcos >>$LOGFILE 2>&1
             set_progress RHCOS_ROOTFS
         fi
-        echo -e "\nSuccessfully setup Apache" | tee $LOGFILE
+        echo -e "\nSuccessfully setup Apache" | tee -a $LOGFILE
         echo -e "\nOK\n" >>$LOGFILE
         set_progress APACHE
     fi
     if [ $TFTP_SETUP != 'OK' ]; then
-        echo -e "\nConfiguring TFTP Server .." | tee $LOGFILE
+        echo -e "\nConfiguring TFTP Server .." | tee -a $LOGFILE
         ansible-playbook tasks/configure_tftp_pxe.yml >>$LOGFILE 2>&1
         on_error $? "Issue Setting up TFTP Server. Check logs at $LOGFILE"
-        echo -e "\nSuccessfully setup TFTP" | tee $LOGFILE
+        echo -e "\nSuccessfully setup TFTP" | tee -a $LOGFILE
         set_progress TFTP_SETUP
     fi
     if [ $HAPROXY != 'OK' ]; then
-        echo -e "\nInstalling HAProxy .." | tee $LOGFILE
+        echo -e "\nInstalling HAProxy .." | tee -a $LOGFILE
         sudo yum remove -y haproxy >>$LOGFILE 2>&1
         sudo yum install -y haproxy >>$LOGFILE 2>&1
         on_error $? "Issue Installing HAProxy. Check logs at $LOGFILE"
         sudo setsebool -P haproxy_connect_any 1 >>$LOGFILE 2>&1
         sudo mv /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.default >>$LOGFILE 2>&1
 
-        echo -e "\nConfiguring HAProxy .." | tee $LOGFILE
+        echo -e "\nConfiguring HAProxy .." | tee -a $LOGFILE
         ansible-playbook tasks/configure_haproxy_lb.yml >>$LOGFILE 2>&1
         on_error $? "Issue Configuring HAProxy. Check logs at $LOGFILE"
         sudo semanage port -a 6443 -t http_port_t -p tcp >>$LOGFILE 2>&1
@@ -266,14 +274,14 @@ EOF
         sudo firewall-cmd --add-service={http,https} --permanent >>$LOGFILE 2>&1
         sudo firewall-cmd --add-port={6443,22623}/tcp --permanent >>$LOGFILE 2>&1
         sudo firewall-cmd --reload >>$LOGFILE 2>&1
-        echo -e "\nSuccessfully setup HAProxy" | tee $LOGFILE
+        echo -e "\nSuccessfully setup HAProxy" | tee -a $LOGFILE
         echo -e "\nOK\n" >>$LOGFILE
         set_progress HAPROXY
     fi
-    echo -e "\nEnvironment Setup Successful" | tee $LOGFILE
+    echo -e "\nEnvironment Setup Successful" | tee -a $LOGFILE
 
     if [ $OPENSHIFT_CLIENTS != 'OK' ]; then
-        echo -e "\nDownloading openshift-install, client binaries and generating SSH Keys .." | tee $LOGFILE
+        echo -e "\nDownloading openshift-install, client binaries and generating SSH Keys .." | tee -a $LOGFILE
         echo -e "\nDownloading openshift client binaries" >>$LOGFILE
         rm -f openshift-client-linux.tar.gz >>$LOGFILE 2>&1
         wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-client-linux.tar.gz >>$LOGFILE 2>&1
@@ -282,13 +290,13 @@ EOF
         sudo rm -f /usr/local/bin/oc && sudo rm -f /usr/local/bin/kubectl >>$LOGFILE 2>&1
         sudo mv oc kubectl /usr/local/bin >>$LOGFILE 2>&1
         rm -f README.md LICENSE openshift-client-linux.tar.gz >>$LOGFILE 2>&1
-        echo -e "Successfully downloaded and installed openshshift client libraries" | tee $LOGFILE
+        echo -e "Successfully downloaded and installed openshshift client libraries" | tee -a $LOGFILE
         echo -e "\nOK\n" >>$LOGFILE
         set_progress OPENSHIFT_CLIENTS
     fi
 
     if [ $OCP_INSTALLER != "OK" ]; then
-        echo -e "\nDownloading openshift install" | tee $LOGFILE
+        echo -e "\nDownloading openshift install" | tee -a $LOGFILE
         rm -f openshift-install-linux.tar.gz >>$LOGFILE 2>&1
         wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-install-linux.tar.gz >>$LOGFILE 2>&1
         on_error $? "Could not download openshift-nstall. Check logs at $LOGFILE"
@@ -296,18 +304,18 @@ EOF
         sudo rm -f /usr/local/bin/openshift-install >>$LOGFILE 2>&1
         sudo mv openshift-install /usr/local/bin >>$LOGFILE 2>&1
         rm -f README.md LICENSE openshift-install-linux.tar.gz >>$LOGFILE 2>&1
-        echo -e "Successfully donwloaded and installed openshift-install" | tee $LOGFILE
+        echo -e "Successfully donwloaded and installed openshift-install" | tee -a $LOGFILE
         set_progress OCP_INSTALLER
     fi
 
     if [ $OCP_FILES != "OK" ]; then
-        echo -e "Generating SSH Keys" | tee $LOGFILE
+        echo -e "Generating SSH Keys" | tee -a $LOGFILE
         ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa <<<y >>$LOGFILE 2>&1
         on_error $? "Could not generate SSH Keys. Check logs at $LOGFILE"
-        echo -e "SSH keys generated" | tee $LOGFILE
+        echo -e "SSH keys generated" | tee -a $LOGFILE
 
-        echo -e "\nPreparing to generate ignition files.." | tee $LOGFILE
-        echo -e "Getting pull secret" | tee $LOGFILE
+        echo -e "\nPreparing to generate ignition files.." | tee -a $LOGFILE
+        echo -e "Getting pull secret" | tee -a $LOGFILE
         source files/secret.sh >>$LOGFILE 2>&1
 
         rm -rf ~/ocp4 && mkdir -p ~/ocp4 >>$LOGFILE 2>&1
@@ -315,17 +323,17 @@ EOF
 $(<files/install-config-base.yaml)
 EOF
 " >~/ocp4/install-config.yaml
-        echo -e "Creating Manifest Files" | tee $LOGFILE
+        echo -e "Creating Manifest Files" | tee -a $LOGFILE
         openshift-install --dir ~/ocp4 create manifests >>$LOGFILE 2>&1
-        on_error $? "\nUnable to create manifest files. Check logs at $LOGFILE" | tee $LOGFILE
+        on_error $? "\nUnable to create manifest files. Check logs at $LOGFILE" | tee -a $LOGFILE
         #Disabling pod scheduling on masters >>$LOGFILE 2>&1
         sed -i 's/true/false/' ~/ocp4/manifests/cluster-scheduler-02-config.yml >>$LOGFILE 2>&1
-        echo -e "Creating Ignition Files" | tee $LOGFILE
+        echo -e "Creating Ignition Files" | tee -a $LOGFILE
         openshift-install --dir ~/ocp4 create ignition-configs >>$LOGFILE 2>&1
         on_error $? "Unable to create ignition files. Check logs at $LOGFILE"
-        echo -e "\nIgnition Files successfully generated" | tee $LOGFILE
+        echo -e "\nIgnition Files successfully generated" | tee -a $LOGFILE
 
-        echo -e "\nCopying ignition files to Apache .." | tee $LOGFILE
+        echo -e "\nCopying ignition files to Apache .." | tee -a $LOGFILE
         sudo rm -rf /var/www/html/ignition && sudo mkdir -p /var/www/html/ignition >>$LOGFILE 2>&1
         sudo cp -v ~/ocp4/*.ign /var/www/html/ignition >>$LOGFILE 2>&1
         sudo chmod 644 /var/www/html/ignition/*.ign >>$LOGFILE 2>&1
@@ -333,7 +341,7 @@ EOF
         set_progress OCP_FILES
     fi
 
-    echo -e "\nConfirming all services are running .." | tee $LOGFILE
+    echo -e "\nConfirming all services are running .." | tee -a $LOGFILE
     SERVICES=(haproxy dhcpd tftp httpd)
     for i in ${SERVICES[@]}; do
         systemctl enable $i >>$LOGFILE >>$LOGFILE 2>&1
@@ -345,8 +353,8 @@ EOF
         fi
     done
 
-    echo -e "\nENVIRONMENT SERVICES SETUP SUCCESSFUL\n" | tee $LOGFILE
+    echo -e "\nENVIRONMENT SERVICES SETUP SUCCESSFUL\n" | tee -a $LOGFILE
     reset_progress
 else
-    echo "Cannot find config file. QUITING" | tee $LOGFILE
+    echo "Cannot find config file. QUITING" | tee -a $LOGFILE
 fi
