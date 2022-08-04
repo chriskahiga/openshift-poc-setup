@@ -104,6 +104,7 @@ if [[ -f $CONFIG_FILE ]]; then
         LOWER_LIMIT="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4) + 1))"
         UPPER_LIMIT="$((i1 & m1 | 255 - m1)).$((i2 & m2 | 255 - m2)).$((i3 & m3 | 255 - m3)).$(((i4 & m4 | 255 - m4) - 1))"
         on_error $? "Issue setting up config variables. Check logs at $LOGFILE\n"
+        set_progress CONFIG_VARS
     fi
 
     #Check disk device if set else use /dev/sda
@@ -128,6 +129,7 @@ if [[ -f $CONFIG_FILE ]]; then
 $(<vars/template.yml)
 EOF
 " >vars/main.yml
+    set_progress ANSIBLE_VARS
     fi
     if [ $PRE_REQS != 'OK' ]; then
         #Checking pre-requisites
