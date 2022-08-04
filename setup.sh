@@ -129,9 +129,9 @@ if [[ -f $CONFIG_FILE ]]; then
 $(<vars/template.yml)
 EOF
 " >vars/main.yml
-    set_progress ANSIBLE_VARS
+        set_progress ANSIBLE_VARS
     fi
-cd $WORK_DIR/ocp4_ansible/
+    cd $WORK_DIR/ocp4_ansible/
     if [ $PRE_REQS != 'OK' ]; then
         #Checking pre-requisites
         echo -e "\nChecking pre-requisites ..." | tee -a $LOGFILE
@@ -337,8 +337,8 @@ EOF
         echo -e "Creating Manifest Files" | tee -a $LOGFILE
         openshift-install --dir ~/ocp4 create manifests >>$LOGFILE 2>&1
         on_error $? "\nUnable to create manifest files. Check logs at $LOGFILE" | tee -a $LOGFILE
-        #Disabling pod scheduling on masters >>$LOGFILE 2>&1
-        sed -i 's/true/false/' ~/ocp4/manifests/cluster-scheduler-02-config.yml >>$LOGFILE 2>&1
+        # Disabling pod scheduling on masters >>$LOGFILE 2>&1
+        [ $ENABLE_MASTER_SCHEDULING == 1 ] && { sed -i 's/true/false/' ~/ocp4/manifests/cluster-scheduler-02-config.yml >>$LOGFILE 2>&1; }
         echo -e "Creating Ignition Files" | tee -a $LOGFILE
         openshift-install --dir ~/ocp4 create ignition-configs >>$LOGFILE 2>&1
         on_error $? "Unable to create ignition files. Check logs at $LOGFILE"
