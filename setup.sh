@@ -334,7 +334,6 @@ EOF
 $(<files/install-config-base.yaml)
 EOF
 " >~/ocp4/install-config.yaml
-        yes | cp ~/ocp4/install-config.yaml install-config-copy.yaml >>$LOGFILE 2>&1
         echo -e "Creating Manifest Files" | tee -a $LOGFILE
         openshift-install --dir ~/ocp4 create manifests >>$LOGFILE 2>&1
         on_error $? "\nUnable to create manifest files. Check logs at $LOGFILE" | tee -a $LOGFILE
