@@ -95,7 +95,7 @@ if [[ -f $CONFIG_FILE ]]; then
         NETWORK_INTERFACE=$(ip route get 8.8.8.8 | awk '{print $5}')
         GATEWAY=$(ip route get 8.8.8.8 | awk '{print $3}')
         BROADCAST=$(ip addr show | grep -w inet | grep -v 127.0.0.1 | awk '{ print $4}' | head -n 1)
-        NETMASK=$(ifconfig | grep -w inet | grep -v 127.0.0.1 | awk '{print $4}' | cut -d ":" -f 2)
+        NETMASK=255.255.255.0
         #Calculate Network ID
         IFS=. read -r i1 i2 i3 i4 <<<"$HELPER_IP"
         IFS=. read -r m1 m2 m3 m4 <<<"$NETMASK"
