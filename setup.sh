@@ -131,6 +131,7 @@ EOF
 " >vars/main.yml
     set_progress ANSIBLE_VARS
     fi
+cd $WORK_DIR/ocp4_ansible/
     if [ $PRE_REQS != 'OK' ]; then
         #Checking pre-requisites
         echo -e "\nChecking pre-requisites ..." | tee -a $LOGFILE
