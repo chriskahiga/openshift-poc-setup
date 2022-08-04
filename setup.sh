@@ -18,7 +18,7 @@ if [[ -f $CONFIG_FILE ]]; then
     #When script is re-run provide option to resume from last successful run block
     if [ $RESUME == 'OK' ]; then
         while true; do
-            read -pe "Resume setup from last exit? (y/n) " setup_resume
+            read -p $'\nResume setup from last exit? (y/n): ' setup_resume
             case $setup_resume in
             [yY])
                 echo -e "\nResuming Setup .."
