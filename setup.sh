@@ -89,42 +89,46 @@ if [[ -f $CONFIG_FILE ]]; then
         set_progress CONFIGS
         set_progress RESUME
     fi
-
-    #Set additional variables
-    HELPER_IP=$(ip route get 8.8.8.8 | awk '{print $7}')
-    NETWORK_INTERFACE=$(ip route get 8.8.8.8 | awk '{print $5}')
-    GATEWAY=$(ip route get 8.8.8.8 | awk '{print $3}')
-    BROADCAST=$(ip addr show | grep -w inet | grep -v 127.0.0.1 | awk '{ print $4}' | head -n 1)
-    NETMASK=$(ifconfig | grep -w inet | grep -v 127.0.0.1 | awk '{print $4}' | cut -d ":" -f 2)
-    #Calculate Network ID
-    IFS=. read -r i1 i2 i3 i4 <<<"$HELPER_IP"
-    IFS=. read -r m1 m2 m3 m4 <<<"$NETMASK"
-    NET_ID="$((i1 & m1))"."$((i2 & m2))"."$((i3 & m3))"."$((i4 & m4))"
-    #Calculate ip range
-    LOWER_LIMIT="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4) + 1))"
-    UPPER_LIMIT="$((i1 & m1 | 255 - m1)).$((i2 & m2 | 255 - m2)).$((i3 & m3 | 255 - m3)).$(((i4 & m4 | 255 - m4) - 1))"
-    on_error $? "Issue setting up config variables. Check logs at $LOGFILE\n"
+    if [ $CONFIG_VARS != 'OK' ]; then
+        #Set additional variables
+        HELPER_IP=$(ip route get 8.8.8.8 | awk '{print $7}')
+        NETWORK_INTERFACE=$(ip route get 8.8.8.8 | awk '{print $5}')
+        GATEWAY=$(ip route get 8.8.8.8 | awk '{print $3}')
+        BROADCAST=$(ip addr show | grep -w inet | grep -v 127.0.0.1 | awk '{ print $4}' | head -n 1)
+        NETMASK=$(ifconfig | grep -w inet | grep -v 127.0.0.1 | awk '{print $4}' | cut -d ":" -f 2)
+        #Calculate Network ID
+        IFS=. read -r i1 i2 i3 i4 <<<"$HELPER_IP"
+        IFS=. read -r m1 m2 m3 m4 <<<"$NETMASK"
+        NET_ID="$((i1 & m1))"."$((i2 & m2))"."$((i3 & m3))"."$((i4 & m4))"
+        #Calculate ip range
+        LOWER_LIMIT="$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4) + 1))"
+        UPPER_LIMIT="$((i1 & m1 | 255 - m1)).$((i2 & m2 | 255 - m2)).$((i3 & m3 | 255 - m3)).$(((i4 & m4 | 255 - m4) - 1))"
+        on_error $? "Issue setting up config variables. Check logs at $LOGFILE\n"
+    fi
 
     #Check disk device if set else use /dev/sda
     [ -z $DEVICE ] && DEVICE=/dev/sda
+
     #Generate variable yaml file to be used by ansible playbooks
-    for ((i = 1; i <= $MASTERS; i++)); do
-        num=$i prefix='$MASTER_0' yq -i '.masters += [{"name": "master0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}${num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee -a $LOGFILE
-        on_error $? "Issue adding generating variable yaml file"
-    done
-    if [[ $WORKERS != 0 ]]; then
+    if [ $ANSIBLE_VARS != 'OK' ]; then
         for ((i = 1; i <= $MASTERS; i++)); do
-            num=$i prefix='WORKER_0' yq -i '.workers += [{"name": "worker0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}{num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee -a $LOGFILE
+            num=$i prefix='$MASTER_0' yq -i '.masters += [{"name": "master0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}${num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee -a $LOGFILE
             on_error $? "Issue adding generating variable yaml file"
         done
-    fi
-    yq -i '.ppc64le = false, .uefi = false' $WORK_DIR/ocp4_ansible/vars/template.yml
+        if [[ $WORKERS != 0 ]]; then
+            for ((i = 1; i <= $MASTERS; i++)); do
+                num=$i prefix='WORKER_0' yq -i '.workers += [{"name": "worker0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}{num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template.yml | tee -a $LOGFILE
+                on_error $? "Issue adding generating variable yaml file"
+            done
+        fi
+        yq -i '.ppc64le = false, .uefi = false' $WORK_DIR/ocp4_ansible/vars/template.yml
 
-    cd $WORK_DIR/ocp4_ansible/
-    eval "cat << EOF
+        cd $WORK_DIR/ocp4_ansible/
+        eval "cat << EOF
 $(<vars/template.yml)
 EOF
 " >vars/main.yml
+    fi
     if [ $PRE_REQS != 'OK' ]; then
         #Checking pre-requisites
         echo -e "\nChecking pre-requisites ..." | tee -a $LOGFILE
