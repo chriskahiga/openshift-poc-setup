@@ -136,6 +136,7 @@ EOF
 
         if [ $SETUP_DNS == 1 ]; then
             echo -e "\nSetting up DNS .." | tee -a $LOGFILE
+            sudo cp files/set-dns-serial.sh /usr/local/bin/ && sudo chmod a+x /usr/local/bin/set-dns-serial.sh
             ansible-playbook tasks/configure_bind_dns.yml >>$LOGFILE 2>&1
             on_error $? "Issue setting up DNS. Check logs at $LOGFILE"
             echo -e "\nSuccessfully setup DNS" | tee -a $LOGFILE
