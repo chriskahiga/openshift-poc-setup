@@ -248,7 +248,7 @@ cd $WORK_DIR/ocp4_ansible/
         sudo firewall-cmd --reload >>$LOGFILE 2>&1
         sudo mkdir -p /var/www/html/rhcos >>$LOGFILE 2>&1
         if [ $RHCOS_ROOTFS != 'OK' ]; then
-            echo -e "\nDownloading Red HatCoreOSroofs image. This might take some time .." | tee -a $LOGFILE
+            echo -e "\nDownloading Red HatCoreOSroofs image. Please wait this might take some time .." | tee -a $LOGFILE
             wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.10/latest/rhcos-live-rootfs.x86_64.img >>$LOGFILE 2>&1
             on_error $? "Could not download Red Hat CoreOSrootfs image. Check logs at $LOGFILE"
             echo -e "\nRed Hat CoreOSrootfs image downloaded" | tee -a $LOGFILE
