@@ -12,6 +12,7 @@ if ! [ -x "$(command -v yq)" ]; then
     echo -ne "\nDownloading Yq"
     wget https://github.com/mikefarah/yq/releases/download/v4.26.1/yq_linux_amd64.tar.gz -O - 2>/dev/null | tar xz && mv yq_linux_amd64 /usr/bin/yq
     on_error $? "\n\nERROR: yq needs to be installed before running this script\n"
+    success_logger
 fi
 
 if [[ -f $CONFIG_FILE ]]; then
