@@ -54,8 +54,8 @@ reset_progress() {
     sed -i "s/OK/0/g" $WORK_DIR/set_progress.sh
 }
 success_logger () {
-    echo -e "$1 ....................... SUCCESS" | tee -a $LOGFILE
+    echo -e "$@ ....................... SUCCESS" | tee -a $LOGFILE
 }
 failed_logger () {
-    echo -e "$1 ....................... FAILED\n" | tee -a $LOGFILE
+    echo -e "$@ ....................... FAILED\n" | tee -a $LOGFILE
 }

@@ -37,7 +37,7 @@ if [[ -f $CONFIG_FILE ]]; then
 
     #VALIDATE AND CONFIRM CONFIGS
     if [ $CONFIGS != 'OK' ]; then
-        action_comment="\nValidating Configuration File"
+        action_comment="Validating Configuration File"
         source $CONFIG_FILE
         #Confirm required config file variables are not empty
         ip_prefix='_IP'
