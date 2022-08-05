@@ -129,7 +129,7 @@ if [[ -f $CONFIG_FILE ]]; then
         cd $WORK_DIR/ocp4_ansible/
         yes | cp $WORK_DIR/ocp4_ansible/vars/template.yml $WORK_DIR/ocp4_ansible/vars/template-copy.yml >>$LOGFILE 2>&1
         eval "cat << EOF
-$(<$WORKDIR/ocp_ansible/vars/template-copy.yml)
+$(<$WORK_DIR/ocp_ansible/vars/template-copy.yml)
 EOF
 " >vars/main.yml
         set_progress ANSIBLE_VARS
