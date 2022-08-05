@@ -114,7 +114,7 @@ if [[ -f $CONFIG_FILE ]]; then
 
     #Generate variable yaml file to be used by ansible playbooks
     if [ $ANSIBLE_VARS != 'OK' ]; then
-        echo -ne "\nConfiguring Ansible Playbooks"
+        echo -ne "\nConfiguring Ansible Playbooks" | tee -a $LOGFILE
         yes | cp $WORK_DIR/ocp4_ansible/vars/template.yml $WORK_DIR/ocp4_ansible/vars/template-copy.yml >>$LOGFILE 2>&1
         for ((i = 1; i <= $MASTERS; i++)); do
             num=$i prefix='$MASTER_0' yq -i '.masters += [{"name": "master0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}${num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template-copy.yml | tee -a $LOGFILE
@@ -297,7 +297,7 @@ EOF
     echo -ne "\nEnvironment Setup Successful" >> $LOGFILE
 
     if [ $OPENSHIFT_CLIENTS != 'OK' ]; then
-        echo -ne "\nDownloading openshift client binaries" >>$LOGFILE
+        echo -ne "\nDownloading openshift client binaries" | tee -a $LOGFILE
         rm -f openshift-client-linux.tar.gz >>$LOGFILE 2>&1
         wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-client-linux.tar.gz >>$LOGFILE 2>&1
         on_error $? "\nCould not download openshift client binaries. Check logs at $LOGFILE"
