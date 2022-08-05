@@ -113,8 +113,8 @@ if [[ -f $CONFIG_FILE ]]; then
     [ -z $NTP ] && NTP=time.google.com
 
     #Generate variable yaml file to be used by ansible playbooks
-    yes | cp $WORK_DIR/ocp4_ansible/vars/template.yml $WORK_DIR/ocp4_ansible/vars/template-copy.yml >>$LOGFILE 2>&1
     if [ $ANSIBLE_VARS != 'OK' ]; then
+        yes | cp $WORK_DIR/ocp4_ansible/vars/template.yml $WORK_DIR/ocp4_ansible/vars/template-copy.yml >>$LOGFILE 2>&1
         for ((i = 1; i <= $MASTERS; i++)); do
             num=$i prefix='$MASTER_0' yq -i '.masters += [{"name": "master0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}${num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template-copy.yml | tee -a $LOGFILE
             on_error $? "Issue adding generating variable yaml file"
