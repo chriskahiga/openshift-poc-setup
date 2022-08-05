@@ -183,7 +183,7 @@ EOF
     #Begin environment setup
     if [ $DHCP != 'OK' ]; then
         echo -e "\nSTARTING SETUP OF ENVIRONMENT SERVICES ..." | tee -a $LOGFILE
-        echo -ne "\nInstalling DHCP" >> $LOGFILE
+        echo -ne "\nInstalling DHCP" | tee -a $LOGFILE
         sudo yum -y remove dhcp-server >>$LOGFILE 2>&1
         sudo yum -y install dhcp-server >>$LOGFILE 2>&1
         sudo systemctl enable dhcpd >>$LOGFILE 2>&1
