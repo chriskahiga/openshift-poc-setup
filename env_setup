@@ -114,7 +114,7 @@ if [[ -f $CONFIG_FILE ]]; then
 
     #Generate variable yaml file to be used by ansible playbooks
     if [ $ANSIBLE_VARS != 'OK' ]; then
-        echo -n "\nConfiguring Ansible Playbooks"
+        echo -ne "\nConfiguring Ansible Playbooks"
         yes | cp $WORK_DIR/ocp4_ansible/vars/template.yml $WORK_DIR/ocp4_ansible/vars/template-copy.yml >>$LOGFILE 2>&1
         for ((i = 1; i <= $MASTERS; i++)); do
             num=$i prefix='$MASTER_0' yq -i '.masters += [{"name": "master0${num}" | envsubst, "ipaddr": "${prefix}${num}_IP" | envsubst, "macaddr": "${prefix}${num}_MAC_ADDRESS" | envsubst}] | .. style="double"' $WORK_DIR/ocp4_ansible/vars/template-copy.yml | tee -a $LOGFILE
@@ -291,7 +291,7 @@ EOF
         sudo firewall-cmd --add-port={6443,22623}/tcp --permanent >>$LOGFILE 2>&1
         sudo firewall-cmd --reload >>$LOGFILE 2>&1
         success_logger
-        echo -ne "\nOK\n" >>$LOGFILE
+        echo -e "\nOK\n" >>$LOGFILE
         set_progress HAPROXY
     fi
     echo -ne "\nEnvironment Setup Successful" >> $LOGFILE
@@ -324,7 +324,7 @@ EOF
     fi
 
     if [ $OCP_FILES != "OK" ]; then
-        echo -e "Generating SSH Keys" >> $LOGFILE
+        echo -e "\nGenerating SSH Keys" >> $LOGFILE
         ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa <<<y >>$LOGFILE 2>&1
         on_error $? "\nCould not generate SSH Keys. Check logs at $LOGFILE"
         echo -e "SSH keys generated" >> $LOGFILE
@@ -338,13 +338,13 @@ EOF
 $(<files/install-config-base.yaml)
 EOF
 " >~/ocp4/install-config.yaml
-        echo -ne "Creating Manifest Files" | tee -a $LOGFILE
+        echo -ne "\nCreating Manifest Files" | tee -a $LOGFILE
         openshift-install --dir ~/ocp4 create manifests >>$LOGFILE 2>&1
         on_error $? "\n\nUnable to create manifest files. Check logs at $LOGFILE" | tee -a $LOGFILE
         success_logger
         # Disabling pod scheduling on masters >>$LOGFILE 2>&1
         [[ $ENABLE_MASTER_SCHEDULING == 1 ]] && { sed -i 's/true/false/' ~/ocp4/manifests/cluster-scheduler-02-config.yml >>$LOGFILE 2>&1; }
-        echo -ne "Creating Ignition Files" | tee -a $LOGFILE
+        echo -ne "\nCreating Ignition Files" | tee -a $LOGFILE
         openshift-install --dir ~/ocp4 create ignition-configs >>$LOGFILE 2>&1
         on_error $? "\nUnable to create ignition files. Check logs at $LOGFILE"
         success_logger
