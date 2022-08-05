@@ -56,9 +56,15 @@ if [[ -f $CONFIG_FILE ]]; then
             fi
             let num=num+1
         done
-        [ $num -lt 2 ] && { failed_logger $action_comment; on_error 1 "Ensure at least 1 master ip and their respective mac address are defined"; }
+        [ $num -lt 2 ] && {
+            failed_logger $action_comment
+            on_error 1 "Ensure at least 1 master ip and their respective mac address are defined"
+        }
         # [ $num -lt 6 ] && { on_error 1 "Ensure at least 3 master ips and their respective mac addresses are defined"; }
-        [ $(expr $num % 2) != 0 ] && { failed_logger $action_comment; on_error 1 "Ensure all masters specified in the config file include their ip and mac addresses"; }
+        [ $(expr $num % 2) != 0 ] && {
+            failed_logger $action_comment
+            on_error 1 "Ensure all masters specified in the config file include their ip and mac addresses"
+        }
         let num=num/2
         sed -i "s/MASTERS=0/MASTERS=$num/g" $WORK_DIR/set_progress.sh
         source $WORK_DIR/set_progress.sh
@@ -70,7 +76,10 @@ if [[ -f $CONFIG_FILE ]]; then
             let num=num+1
         done
         if [ $num != 0 ]; then
-            [ $(expr $num % 2) != 0 ] && { failed_logger $action_comment; on_error 1 "Ensure all workers specified in the config file include their ip and mac addresses"; }
+            [ $(expr $num % 2) != 0 ] && {
+                failed_logger $action_comment
+                on_error 1 "Ensure all workers specified in the config file include their ip and mac addresses"
+            }
             let num=num/2
             sed -i "s/WORKERS=0/WORKERS=$num/g" $WORK_DIR/set_progress.sh
             source $WORK_DIR/set_progress.sh

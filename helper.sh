@@ -3,8 +3,16 @@ source $WORK_DIR/setup.conf
 PROGRESS_FILE=$WORK_DIR/set_progress.sh
 LOGFILE=$WORK_DIR/update.log
 
+success_logger() {
+    echo -e "\n$@ ....................... SUCCESS" | tee -a $LOGFILE
+}
+failed_logger() {
+    echo -e "\n$@ ....................... FAILED\n" | tee -a $LOGFILE
+}
 is_variable_empty() {
     [ -z "$1" ] && {
+        action_comment="Validating Configuration File"
+        failed_logger $action_comment
         on_error 1 "$i is not set. Ensure all required values are provided in the setup.conf file before proceeding with setup"
     }
 }
@@ -23,6 +31,8 @@ valid_ip() {
         stat=$?
     fi
     [ $stat = 1 ] && {
+        action_comment="Validating Configuration File"
+        failed_logger $action_comment
         on_error 1 "'$ip' set for $ip_var is not a valid IP. Please make the necessary modifications and try again"
     }
 }
@@ -32,6 +42,8 @@ valid_mac() {
     if [ $(echo $MAC_ADDR | egrep "^([0-9A-F]{2}:){5}[0-9A-F]{2}$") ]; then
         return 0
     else
+        action_comment="Validating Configuration File"
+        failed_logger $action_comment
         on_error 1 "'$1' set for $2 is not a valid MAC ADDRESS. Please make the necessary modifications in the config.sh file and try again"
     fi
 }
@@ -40,10 +52,14 @@ dns_resolve() {
     #forward resolution
     RESULT=$(dig @${DNS} +short $RECORD)
     [ $? != 0 ] && {
+        action_comment="Validating Configuration File"
+        failed_logger $action_comment
         on_error 1 "\nUnable to resolve $RECORD. Please add $RECORD to DNS server $DNS and its associated IP or check if the correct IP of your DNS Server is configured on this server by running\n\ncat /etc/resolv.conf\n"
     }
     REVERSE=$(dig @${DNS} +short $RESULT)
     [ $? != 0 ] && {
+        action_comment="Validating Configuration File"
+        failed_logger $action_comment
         on_error 1 "\nUnable to perform reverse dns resolution on $RECORD. Please add the associated PTR Record on DNS server $DNS or check if the correct IP of your DNS Server is configured on this server by running\n\ncat /etc/resolv.conf\n"
     }
 }
@@ -52,10 +68,4 @@ set_progress() {
 }
 reset_progress() {
     sed -i "s/OK/0/g" $WORK_DIR/set_progress.sh
-}
-success_logger () {
-    echo -e "$@ ....................... SUCCESS" | tee -a $LOGFILE
-}
-failed_logger () {
-    echo -e "$@ ....................... FAILED\n" | tee -a $LOGFILE
 }
