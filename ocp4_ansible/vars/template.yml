@@ -20,8 +20,8 @@ dhcp:
   poolend: "$UPPER_LIMIT"                #Last address in your dhcp address pool
   ipid: "$NET_ID"                    #ip network id for the range
   netmaskid: "$NETMASK"               #networkmask id for the range.
-  ntp: "time.google.com"                   #ntp server address
-  dns: "$DNS_1"                                  #domain name server, it is optional, the default value is set to helper.ipaddr
+  ntp: "$NTP"                   #ntp server address
+  dns: "$DNS"                                  #domain name server, it is optional, the default value is set to helper.ipaddr
 bootstrap:
   name: "bootstrap"                        #hostname (WITHOUT the fqdn) of the bootstrap node 
   ipaddr: "$BOOTSTRAP_IP"                 #IP address that you want set for bootstrap node

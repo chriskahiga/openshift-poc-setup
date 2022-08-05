@@ -109,6 +109,8 @@ if [[ -f $CONFIG_FILE ]]; then
 
     #Check disk device if set else use /dev/sda
     [ -z $DEVICE ] && DEVICE=/dev/sda
+    #Check if ntp server set else set to time.google.com
+    [ -z $NTP ] && NTP=time.google.com
 
     #Generate variable yaml file to be used by ansible playbooks
     if [ $ANSIBLE_VARS != 'OK' ]; then
@@ -125,8 +127,9 @@ if [[ -f $CONFIG_FILE ]]; then
         yq -i '.ppc64le = false, .uefi = false' $WORK_DIR/ocp4_ansible/vars/template.yml
 
         cd $WORK_DIR/ocp4_ansible/
+        yes | cp $WORK_DIR/ocp4_ansible/vars/template.yml $WORK_DIR/ocp4_ansible/vars/template-copy.yml >>$LOGFILE 2>&1
         eval "cat << EOF
-$(<vars/template.yml)
+$(<$WORKDIR/ocp_ansible/vars/template-copy.yml)
 EOF
 " >vars/main.yml
         set_progress ANSIBLE_VARS
