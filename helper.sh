@@ -1,6 +1,7 @@
 WORK_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 source $WORK_DIR/setup.conf
 PROGRESS_FILE=$WORK_DIR/set_progress.sh
+LOGFILE=$WORK_DIR/update.log
 
 is_variable_empty() {
     [ -z "$1" ] && {
@@ -51,4 +52,10 @@ set_progress() {
 }
 reset_progress() {
     sed -i "s/OK/0/g" $WORK_DIR/set_progress.sh
+}
+success_logger () {
+    echo -e "$1 ....................... SUCCESS" | tee -a $LOGFILE
+}
+failed_logger () {
+    echo -e "$1 ....................... FAILED\n" | tee -a $LOGFILE
 }
