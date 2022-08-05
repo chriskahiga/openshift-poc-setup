@@ -37,7 +37,7 @@ if [[ -f $CONFIG_FILE ]]; then
 
     #VALIDATE AND CONFIRM CONFIGS
     if [ $CONFIGS != 'OK' ]; then
-        action_comment="Validating Configuration File"
+        action_comment="1.Validating Configuration File"
         source $CONFIG_FILE
         #Confirm required config file variables are not empty
         ip_prefix='_IP'
@@ -57,13 +57,11 @@ if [[ -f $CONFIG_FILE ]]; then
             let num=num+1
         done
         [ $num -lt 2 ] && {
-            failed_logger $action_comment
-            on_error 1 "Ensure at least 1 master ip and their respective mac address are defined"
+            on_error 1 "Ensure at least 1 master ip and their respective mac address are defined" $action_comment
         }
         # [ $num -lt 6 ] && { on_error 1 "Ensure at least 3 master ips and their respective mac addresses are defined"; }
         [ $(expr $num % 2) != 0 ] && {
-            failed_logger $action_comment
-            on_error 1 "Ensure all masters specified in the config file include their ip and mac addresses"
+            on_error 1 "Ensure all masters specified in the config file include their ip and mac addresses" $action_comment
         }
         let num=num/2
         sed -i "s/MASTERS=0/MASTERS=$num/g" $WORK_DIR/set_progress.sh
@@ -77,8 +75,7 @@ if [[ -f $CONFIG_FILE ]]; then
         done
         if [ $num != 0 ]; then
             [ $(expr $num % 2) != 0 ] && {
-                failed_logger $action_comment
-                on_error 1 "Ensure all workers specified in the config file include their ip and mac addresses"
+                on_error 1 "Ensure all workers specified in the config file include their ip and mac addresses" $action_comment
             }
             let num=num/2
             sed -i "s/WORKERS=0/WORKERS=$num/g" $WORK_DIR/set_progress.sh
@@ -146,10 +143,10 @@ EOF
     cd $WORK_DIR/ocp4_ansible/
     if [ $PRE_REQS != 'OK' ]; then
         #Checking pre-requisites
-        echo -e "\nChecking pre-requisites ..." | tee -a $LOGFILE
-        echo -e "\nConfirming OS Version .." | tee -a $LOGFILE
+        action_comment="Checking pre-requisites"
+        echo -e "\nConfirming OS Version .." >>$LOGFILE
         source /etc/os-release >>$LOGFILE 2>&1
-        on_error $? "Could not confirm OS version. Check logs at $LOGFILE\n"
+        on_error $? "Could not confirm OS version. Check logs at $LOGFILE\n" $action_comment
         [ -z "$VERSION" ] && {on_error 1 "Could not confirm OS Version"}
         [[ $VERSION == 8* ]] && echo -e "\nSuccessfully Confirmed OS Version" || on_error 1 "\nPlease run this setup on Red Hat Linux version 8.*.EXITING\n"
 
