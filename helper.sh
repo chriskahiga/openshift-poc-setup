@@ -4,10 +4,10 @@ PROGRESS_FILE=$WORK_DIR/set_progress.sh
 LOGFILE=$WORK_DIR/update.log
 
 success_logger() {
-    echo -e "\n$@ ....................... SUCCESS" | tee -a $LOGFILE
+    echo " ................. SUCCESS"
 }
 failed_logger() {
-    echo -e "\n$@ ....................... FAILED\n" | tee -a $LOGFILE
+    echo " ................. FAILED"
 }
 is_variable_empty() {
     [ -z "$1" ] && {
