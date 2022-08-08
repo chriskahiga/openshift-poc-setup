@@ -16,7 +16,7 @@ if ! [ -x "$(command -v yq)" ]; then
 fi
 
 if [[ -f $CONFIG_FILE ]]; then
-    #When script is re-run provide option to resume from last successful run block
+    #When script is re-run provide option to resume from last successful ran block
     if [ $RESUME == 'OK' ]; then
         while true; do
             read -p $'\nResume setup from last exit? (y/n): ' setup_resume
