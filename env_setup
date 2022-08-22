@@ -228,13 +228,13 @@ EOF
 
     if [ $RHCOS_KERNEL != 'OK' ]; then
         echo -ne "\nDownloading RHCOS Kernel and Installer Image. Please wait this might take some time" | tee -a $LOGFILE
-        wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-kernel-x86_64 >>$LOGFILE 2>&1
+        wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-kernel-x86_64 > /dev/null 2>&1
         on_error $? "\nCould not download kernel file. Check logs at $LOGFILE"
         sudo mv rhcos-installer-kernel-x86_64 /var/lib/tftpboot/rhcos/kernel >>$LOGFILE 2>&1
         set_progress RHCOS_KERNEL
     fi
     if [ $RHCOS_INSTALLER != 'OK' ]; then
-        wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-initramfs.x86_64.img >>$LOGFILE 2>&1
+        wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-initramfs.x86_64.img > /dev/null 2>&1
         on_error $? "\nCould not download installer image. Check logs at $LOGFILE"
         sudo mv rhcos-installer-initramfs.x86_64.img /var/lib/tftpboot/rhcos/initramfs.img >>$LOGFILE 2>&1
         set_progress RHCOS_INSTALLER
@@ -300,7 +300,7 @@ EOF
     if [ $OPENSHIFT_CLIENTS != 'OK' ]; then
         echo -ne "\nDownloading openshift client binaries" | tee -a $LOGFILE
         rm -f openshift-client-linux.tar.gz >>$LOGFILE 2>&1
-        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-client-linux.tar.gz >>$LOGFILE 2>&1
+        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-client-linux.tar.gz > /dev/null 2>&1
         on_error $? "\nCould not download openshift client binaries. Check logs at $LOGFILE"
         tar xvf openshift-client-linux.tar.gz >>$LOGFILE 2>&1
         sudo rm -f /usr/local/bin/oc && sudo rm -f /usr/local/bin/kubectl >>$LOGFILE 2>&1
@@ -314,7 +314,7 @@ EOF
     if [ $OCP_INSTALLER != "OK" ]; then
         echo -ne "\nDownloading openshift install" | tee -a $LOGFILE
         rm -f openshift-install-linux.tar.gz >>$LOGFILE 2>&1
-        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-install-linux.tar.gz >>$LOGFILE 2>&1
+        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-install-linux.tar.gz > /dev/null 2>&1
         on_error $? "\nCould not download openshift-nstall. Check logs at $LOGFILE"
         tar xvf openshift-install-linux.tar.gz >>$LOGFILE 2>&1
         sudo rm -f /usr/local/bin/openshift-install >>$LOGFILE 2>&1
