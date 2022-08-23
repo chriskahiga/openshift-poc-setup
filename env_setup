@@ -89,6 +89,8 @@ if [[ -f $CONFIG_FILE ]]; then
         success_logger
         set_progress CONFIGS
         set_progress RESUME
+        #Create copy of config file to reuse if needed
+        cp $CONFIG_FILE ~/setup.conf
     fi
     if [ $CONFIG_VARS != 'OK' ]; then
         #Set additional variables
