@@ -223,25 +223,33 @@ EOF
         echo -ne "\nOK\n" >>$LOGFILE
         set_progress TFTP_INSTALL
     fi
+    sudo mkdir -p /var/ocp4/files >>$LOGFILE 2>&1
     sudo rm -rf /var/lib/tftpboot >>$LOGFILE 2>&1
     sudo mkdir -p /var/lib/tftpboot/pxelinux.cfg >>$LOGFILE 2>&1
     sudo cp -rvf /usr/share/syslinux/* /var/lib/tftpboot >>LOGFILE >>$LOGFILE 2>&1
     sudo mkdir -p /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
 
     if [ $RHCOS_KERNEL != 'OK' ]; then
-        if [ ! -f /var/lib/tftpboot/rhcos/kernel ]; then
+        if [ ! -f /var/ocp4/files/kernel ]; then
             echo -ne "\nDownloading RHCOS Kernel and Installer Image. Please wait this might take some time" | tee -a $LOGFILE
             wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-kernel-x86_64 >/dev/null 2>&1
             on_error $? "\nCould not download kernel file. Check logs at $LOGFILE"
             sudo mv rhcos-installer-kernel-x86_64 /var/lib/tftpboot/rhcos/kernel >>$LOGFILE 2>&1
+            # To ensure files aren't downloaded again when they already exist
+            sudo cp /var/lib/tftpboot/rhcos/kernel /var/ocp4/files/kernel >>$LOGFILE 2>&1
+        else
+            sudo cp /var/ocp4/files/kernel /var/lib/tftpboot/rhcos/kernel
         fi
         set_progress RHCOS_KERNEL
     fi
     if [ $RHCOS_INSTALLER != 'OK' ]; then
-        if [ ! -f /var/lib/tftpboot/rhcos/initramfs.img ]; then
+        if [ ! -f /var/ocp4/files/initramfs.img ]; then
             wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-initramfs.x86_64.img >/dev/null 2>&1
             on_error $? "\nCould not download installer image. Check logs at $LOGFILE"
             sudo mv rhcos-installer-initramfs.x86_64.img /var/lib/tftpboot/rhcos/initramfs.img >>$LOGFILE 2>&1
+            sudo cp /var/lib/tftpboot/rhcos/initramfs.img /var/ocp4/files/initramfs.img
+        else
+            sudo cp /var/ocp4/files/initramfs /var/lib/tftpboot/rhcos/initramfs.img
         fi
         set_progress RHCOS_INSTALLER
     fi
@@ -262,14 +270,17 @@ EOF
         sudo firewall-cmd --reload >>$LOGFILE 2>&1
         sudo mkdir -p /var/www/html/rhcos >>$LOGFILE 2>&1
         if [ $RHCOS_ROOTFS != 'OK' ]; then
-            if [ ! -f /var/www/html/rhcos/rootfs.img ]; then
+            if [ ! -f /var/ocp4/files/rootfs.img ]; then
                 echo -ne "\nDownloading RHCOS roofs image. Please wait this might take some time" | tee -a $LOGFILE
                 wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/4.10/latest/rhcos-live-rootfs.x86_64.img >>$LOGFILE 2>&1
                 on_error $? "\nCould not download Red Hat CoreOSrootfs image. Check logs at $LOGFILE"
                 success_logger
                 sudo mv rhcos-live-rootfs.x86_64.img /var/www/html/rhcos/rootfs.img >>$LOGFILE 2>&1
-                sudo restorecon -RFv /var/www/html/rhcos >>$LOGFILE 2>&1
+                sudo cp /var/www/html/rhcos/rootfs.img /var/ocp4/files/rootfs.img >>$LOGFILE 2>&1
+            else
+                sudo cp /var/ocp4/files/rootfs.img /var/www/html/rhcos/rootfs.img
             fi
+            sudo restorecon -RFv /var/www/html/rhcos >>$LOGFILE 2>&1
             set_progress RHCOS_ROOTFS
         fi
         echo -ne "\nOK\n" >>$LOGFILE
