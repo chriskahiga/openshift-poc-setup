@@ -232,7 +232,7 @@ EOF
     if [ $RHCOS_KERNEL != 'OK' ]; then
         if [ ! -f /var/ocp4/files/kernel ]; then
             echo -ne "\nDownloading RHCOS Kernel and Installer Image. Please wait this might take some time" | tee -a $LOGFILE
-            wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-kernel-x86_64 >/dev/null 2>&1
+            wget https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.10/latest/rhcos-installer-kernel-x86_64 >/dev/null 2>&1
             on_error $? "\nCould not download kernel file. Check logs at $LOGFILE"
             sudo mv rhcos-installer-kernel-x86_64 /var/lib/tftpboot/rhcos/kernel >>$LOGFILE 2>&1
             # To ensure files aren't downloaded again when they already exist
@@ -244,7 +244,7 @@ EOF
     fi
     if [ $RHCOS_INSTALLER != 'OK' ]; then
         if [ ! -f /var/ocp4/files/initramfs.img ]; then
-            wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/latest/rhcos-installer-initramfs.x86_64.img >/dev/null 2>&1
+            wget https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.10/latest/rhcos-installer-initramfs.x86_64.img >/dev/null 2>&1
             on_error $? "\nCould not download installer image. Check logs at $LOGFILE"
             sudo mv rhcos-installer-initramfs.x86_64.img /var/lib/tftpboot/rhcos/initramfs.img >>$LOGFILE 2>&1
             sudo cp /var/lib/tftpboot/rhcos/initramfs.img /var/ocp4/files/initramfs.img
@@ -253,7 +253,7 @@ EOF
         fi
         set_progress RHCOS_INSTALLER
     fi
-    sudo restorecon -RFv /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
+    sudo restorecon -RFv /var/lib/tftpboot/ >>$LOGFILE 2>&1
     success_logger
     ls /var/lib/tftpboot/rhcos >>$LOGFILE 2>&1
     echo -e "\nOK\n" >>$LOGFILE
