@@ -331,11 +331,16 @@ EOF
     fi
 
     if [ $OCP_INSTALLER != "OK" ]; then
-        echo -ne "\nDownloading openshift install" | tee -a $LOGFILE
-        rm -f openshift-install-linux.tar.gz >>$LOGFILE 2>&1
-        wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-install-linux.tar.gz >/dev/null 2>&1
-        on_error $? "\nCould not download openshift-nstall. Check logs at $LOGFILE"
-        tar xvf openshift-install-linux.tar.gz >>$LOGFILE 2>&1
+        if [ ! -f /var/ocp4/files/openshift-install ]; then
+            echo -ne "\nDownloading openshift install" | tee -a $LOGFILE
+            rm -f openshift-install-linux.tar.gz >>$LOGFILE 2>&1
+            wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.10/openshift-install-linux.tar.gz >/dev/null 2>&1
+            on_error $? "\nCould not download openshift-install. Check logs at $LOGFILE"
+            tar xvf openshift-install-linux.tar.gz >>$LOGFILE 2>&1
+            sudo cp openshift-install /var/ocp4/files/
+        else
+            sudo cp /var/ocp4/files/openshift-install openshift-install
+        fi
         sudo rm -f /usr/local/bin/openshift-install >>$LOGFILE 2>&1
         sudo mv openshift-install /usr/local/bin >>$LOGFILE 2>&1
         rm -f README.md LICENSE openshift-install-linux.tar.gz >>$LOGFILE 2>&1
