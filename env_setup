@@ -249,7 +249,7 @@ EOF
             sudo mv rhcos-installer-initramfs.x86_64.img /var/lib/tftpboot/rhcos/initramfs.img >>$LOGFILE 2>&1
             sudo cp /var/lib/tftpboot/rhcos/initramfs.img /var/ocp4/files/initramfs.img
         else
-            sudo cp /var/ocp4/files/initramfs /var/lib/tftpboot/rhcos/initramfs.img
+            sudo cp /var/ocp4/files/initramfs.img /var/lib/tftpboot/rhcos/initramfs.img
         fi
         set_progress RHCOS_INSTALLER
     fi
