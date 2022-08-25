@@ -157,6 +157,8 @@ EOF
             sudo cp files/set-dns-serial.sh /usr/local/bin/ && sudo chmod a+x /usr/local/bin/set-dns-serial.sh
             ansible-playbook tasks/configure_bind_dns.yml >>$LOGFILE 2>&1
             on_error $? "\nIssue setting up DNS. Check logs at $LOGFILE"
+            firewall-cmd --add-service dns --permanent >>$LOGFILE 2>&1
+            firewall-cmd --reload >>$LOGFILE 2>&1
             success_logger
             echo -ne "\nOK\n" >>$LOGFILE
         fi
