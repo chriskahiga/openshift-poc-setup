@@ -2,7 +2,7 @@
 ### Requirements:
 - Run these scripts on CENTOS\ORACLE LINUX\RHEL 8 Server
 - Must be logged in and ran as root user
-- For RHEL 8
+- Ensure subscribed(RHEL 8) and repos are enabled
 
 ### Steps:
 - Upload/Download the zipped folder to the root directory 
@@ -24,4 +24,4 @@
   ```
   # ./env_setup
   ```
-- Logs will be created on the update.log file for any troubleshooting check this log file in the directory you run the script
+- Logs will be created on the update.log file for any troubleshooting check this log file in the directory you ran the script
