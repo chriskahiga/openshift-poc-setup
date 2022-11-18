@@ -5,12 +5,10 @@
 - Ensure subscribed(RHEL 8) and repos are enabled
 
 ### Steps:
-- Upload/Download the zipped folder to the root directory 
-- Create new folder and unzip into it
+- Clone the repository to your working directory and CD into it
   ```
-  # mkdir openshift-poc-setup
-  # mv openshift-poc-setup.zip openshift-poc-setup
-  # cd openshift-poc-setup && unzip openshift-poc-setup.zip
+  # git clone https://github.com/chriskahiga/openshift-poc-setup.git
+  # cd openshift-poc-setup
   ```
 - Make the contents executable
   ```
