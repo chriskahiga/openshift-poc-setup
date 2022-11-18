@@ -1,6 +1,6 @@
 # OpenShift POC Setup Script (Beta)
 ### Requirements:
-- Run these scripts on CENTOS\ORACLE LINUX\RHEL 8 Server
+- Run these scripts on either a CENTOS\ORACLE LINUX\RHEL 8 bastion Server
 - Must be logged in and ran as root user
 - Ensure subscribed(RHEL 8) and repos are enabled
 
